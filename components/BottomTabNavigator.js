@@ -63,7 +63,7 @@ export default function BottomTabNavigator() {
       <Tab.Screen 
         name="History" 
         component={HistoryScreen}
-        options={{ title: 'History' }}
+        options={{ headerShown: false }}
       />
       <Tab.Screen 
         name="Learn" 

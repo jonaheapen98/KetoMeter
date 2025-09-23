@@ -46,7 +46,10 @@ export default function IdentifyScreen({ navigation }) {
         </TouchableOpacity>
 
         {/* Card 2 */}
-        <View style={styles.card}>
+        <TouchableOpacity 
+          style={styles.card}
+          onPress={() => navigation.getParent()?.navigate('Camera')}
+        >
           <View style={styles.cardContent}>
             <View style={styles.cardText}>
               <Text style={styles.cardTitle}>Snap food or nutrition label</Text>
@@ -60,10 +63,13 @@ export default function IdentifyScreen({ navigation }) {
               />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Card 3 */}
-        <View style={styles.card}>
+        <TouchableOpacity 
+          style={styles.card}
+          onPress={() => navigation.getParent()?.navigate('MenuCamera')}
+        >
           <View style={styles.cardContent}>
             <View style={styles.cardText}>
               <Text style={styles.cardTitle}>Scan from a menu</Text>
@@ -77,7 +83,7 @@ export default function IdentifyScreen({ navigation }) {
               />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );

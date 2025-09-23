@@ -1,29 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { analyzeFood } from '../lib/supabase';
+import { saveAnalysis } from '../lib/database';
 
-export default function AnalyzeScreen({ navigation }) {
+export default function AnalyzeScreen({ navigation, route }) {
   const [progress, setProgress] = useState(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const insets = useSafeAreaInsets();
+  
+  // Check if we have images or just text analysis
+  const images = route?.params?.images;
+  const additionalDescription = route?.params?.additionalDescription;
+  const foodDescription = route?.params?.foodDescription;
+  
+  // Check if this is menu analysis based on the route name
+  const isMenuAnalysis = route?.name === 'MenuAnalyze';
 
   useEffect(() => {
-    // Simulate progress from 0% to 100% over 3 seconds
+    if (images && images.length > 0) {
+      // Image analysis flow
+      performImageAnalysis();
+    } else if (foodDescription) {
+      // Text analysis flow (existing)
+      performTextAnalysis();
+    }
+  }, []);
+
+  const performImageAnalysis = async () => {
+    setIsAnalyzing(true);
+    
+    try {
+      // Convert images to base64 for the API
+      const imageData = await Promise.all(
+        images.map(async (image) => {
+          try {
+            // Convert image URI to base64
+            const response = await fetch(image.uri);
+            const blob = await response.blob();
+            
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                const base64 = reader.result.split(',')[1]; // Remove data:image/jpeg;base64, prefix
+                resolve({
+                  uri: image.uri,
+                  base64: base64,
+                  type: blob.type || 'image/jpeg'
+                });
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+          } catch (error) {
+            console.error('Error converting image to base64:', error);
+            return {
+              uri: image.uri,
+              base64: null,
+              type: 'image/jpeg'
+            };
+          }
+        })
+      );
+
+      // Call the edge function with images and optional text
+      const content = additionalDescription || 'Please analyze the food images provided';
+      const analysis = await analyzeFood(isMenuAnalysis ? 'menu' : 'image', content, imageData);
+      
+      // Simulate progress while analysis is happening
+      simulateProgress(async () => {
+        try {
+          // Save analysis to database
+          const analysisType = isMenuAnalysis ? 'menu' : 'image';
+          const inputData = {
+            images: images,
+            additionalDescription: additionalDescription
+          };
+          
+          await saveAnalysis(analysisType, inputData, analysis);
+          console.log('Analysis saved to database');
+        } catch (error) {
+          console.error('Error saving analysis to database:', error);
+          // Continue to report screen even if saving fails
+        }
+        
+        const reportScreen = isMenuAnalysis ? 'MenuReport' : 'Report';
+        navigation.navigate(reportScreen, { analysis });
+      });
+      
+    } catch (error) {
+      console.error('Image analysis error:', error);
+      Alert.alert('Analysis Error', 'Failed to analyze images. Please try again.');
+      navigation.goBack();
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const performTextAnalysis = async () => {
+    setIsAnalyzing(true);
+    
+    try {
+      // Call the edge function for text analysis
+      const analysis = await analyzeFood('text', foodDescription.trim());
+      
+      // Simulate progress while analysis is happening
+      simulateProgress(async () => {
+        try {
+          // Save analysis to database
+          const inputData = {
+            foodDescription: foodDescription
+          };
+          
+          await saveAnalysis('text', inputData, analysis);
+          console.log('Analysis saved to database');
+        } catch (error) {
+          console.error('Error saving analysis to database:', error);
+          // Continue to report screen even if saving fails
+        }
+        
+        navigation.navigate('Report', { analysis });
+      });
+      
+    } catch (error) {
+      console.error('Text analysis error:', error);
+      Alert.alert('Analysis Error', 'Failed to analyze text. Please try again.');
+      navigation.goBack();
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const simulateProgress = (onComplete) => {
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(interval);
-          // Navigate to Report screen after reaching 100%
           setTimeout(() => {
-            navigation.navigate('Report');
+            onComplete();
           }, 500);
           return 100;
         }
         return prev + 2; // Increase by 2% every 60ms
       });
     }, 60);
-
-    return () => clearInterval(interval);
-  }, [navigation]);
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

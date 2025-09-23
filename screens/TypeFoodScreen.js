@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TypeFoodScreen({ navigation }) {
   const [foodDescription, setFoodDescription] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const handleAnalyze = () => {
-    // Navigate to Analyze screen
-    navigation.navigate('Analyze');
+  const handleAnalyze = async () => {
+    if (!foodDescription.trim()) {
+      Alert.alert('Error', 'Please enter a food description');
+      return;
+    }
+
+    // Navigate to Analyze screen with the food description
+    navigation.navigate('Analyze', { foodDescription: foodDescription.trim() });
   };
 
   return (
@@ -58,11 +64,13 @@ export default function TypeFoodScreen({ navigation }) {
       {/* Analyze Button */}
       <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 20 }]}>
         <TouchableOpacity 
-          style={[styles.analyzeButton, { opacity: foodDescription.trim() ? 1 : 0.5 }]}
+          style={[styles.analyzeButton, { opacity: (foodDescription.trim() && !isAnalyzing) ? 1 : 0.5 }]}
           onPress={handleAnalyze}
-          disabled={!foodDescription.trim()}
+          disabled={!foodDescription.trim() || isAnalyzing}
         >
-          <Text style={styles.analyzeButtonText}>Analyze</Text>
+          <Text style={styles.analyzeButtonText}>
+            {isAnalyzing ? 'Analyzing...' : 'Analyze'}
+          </Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
