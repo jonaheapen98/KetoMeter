@@ -8,7 +8,7 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export default function MenuImagePreviewScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  const { images = [] } = route?.params || {};
+  const { images } = route.params;
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [additionalDescription, setAdditionalDescription] = useState('');
   const scrollViewRef = React.useRef();
@@ -29,7 +29,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
       Alert.alert('No Images', 'Please go back and capture or select images to analyze.');
       return;
     }
-    navigation.navigate('MenuAnalyze', { images, additionalDescription });
+    navigation.navigate('Analyze', { images, additionalDescription, inputType: 'menu' });
   };
 
   return (
@@ -38,17 +38,12 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: (insets?.top || 0) + 10 }]}>
-        <TouchableOpacity 
-          style={styles.headerIcon}
-          onPress={() => navigation.goBack()}
-        >
-          <Feather name="arrow-left" size={24} color="#666" />
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
+          <Feather name="arrow-left" size={24} color="#1A1A1A" />
         </TouchableOpacity>
-        <View style={styles.headerTitle}>
-          <Text style={styles.headerTitleText}>Review Menu Photos</Text>
-        </View>
-        <View style={styles.headerIcon} /> {/* Spacer */}
+        <Text style={styles.headerTitle}>Review Menu Photos</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Image Slider */}
@@ -65,7 +60,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
           {images && Array.isArray(images) && images.map((image, index) => (
             <View key={index} style={styles.imageSlide}>
               <Image
-                source={{ uri: image?.uri || '' }}
+                source={{ uri: String(image?.uri || '') }}
                 style={styles.fullImage}
                 contentFit="contain"
               />
@@ -74,7 +69,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
         </ScrollView>
         <View style={styles.imageCounterContainer}>
           <Text style={styles.imageCounterText}>
-            {currentImageIndex + 1}/{images?.length || 0}
+            {(currentImageIndex || 0) + 1}/{images?.length || 0}
           </Text>
         </View>
       </View>
@@ -91,7 +86,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
             ]}
           >
             <Image
-              source={{ uri: image?.uri || '' }}
+              source={{ uri: String(image?.uri || '') }}
               style={styles.thumbnailImage}
               contentFit="cover"
             />
@@ -107,13 +102,13 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
           placeholder="e.g., 'Looking for low-carb options' or 'Avoid dairy'"
           placeholderTextColor="#999"
           multiline
-          value={additionalDescription}
+          value={additionalDescription || ''}
           onChangeText={setAdditionalDescription}
         />
       </ScrollView>
 
       {/* Analyze Button */}
-      <View style={[styles.buttonContainer, { paddingBottom: (insets?.bottom || 0) + 20 }]}>
+      <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 20 }]}>
         <TouchableOpacity
           style={styles.analyzeButton}
           onPress={handleAnalyze}
@@ -140,20 +135,21 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E5E5EA',
     backgroundColor: '#fff',
   },
-  headerIcon: {
+  headerButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitle: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerTitleText: {
     fontSize: 18,
     fontFamily: 'Inter_600SemiBold',
     color: '#1A1A1A',
+  },
+  headerSpacer: {
+    width: 40,
   },
   imageSliderContainer: {
     flex: 1,

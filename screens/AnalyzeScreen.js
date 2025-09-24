@@ -16,8 +16,8 @@ export default function AnalyzeScreen({ navigation, route }) {
   const additionalDescription = route?.params?.additionalDescription;
   const foodDescription = route?.params?.foodDescription;
   
-  // Check if this is menu analysis based on the route name
-  const isMenuAnalysis = route?.name === 'MenuAnalyze';
+  // Check if this is menu analysis based on inputType parameter
+  const isMenuAnalysis = route?.params?.inputType === 'menu';
 
   useEffect(() => {
     // Start progress animation immediately

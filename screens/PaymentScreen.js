@@ -1,12 +1,87 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { 
+  initializeRevenueCat, 
+  getOfferings, 
+  purchasePackage, 
+  restorePurchases,
+  hasActiveSubscription,
+  getSubscriptionStatus 
+} from '../lib/revenuecat';
 
 export default function PaymentScreen({ navigation, onComplete }) {
   const [selectedPlan, setSelectedPlan] = useState('trial');
   const [freeTrialEnabled, setFreeTrialEnabled] = useState(true);
+  const [offerings, setOfferings] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState(null);
   const insets = useSafeAreaInsets();
+
+  // Initialize RevenueCat and fetch offerings
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      setLoading(true);
+      
+      // Initialize RevenueCat
+      const initialized = await initializeRevenueCat();
+      if (!initialized) {
+        throw new Error('Failed to initialize RevenueCat');
+      }
+
+      // Get current customer info
+      const customer = await getCustomerInfo();
+      setCustomerInfo(customer);
+
+      // Check if user already has active subscription
+      if (customer && hasActiveSubscription(customer)) {
+        Alert.alert(
+          'Already Subscribed',
+          'You already have an active subscription. Redirecting to the app...',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                if (onComplete) onComplete();
+              }
+            }
+          ]
+        );
+        return;
+      }
+
+      // Fetch available offerings
+      const availableOfferings = await getOfferings();
+      setOfferings(availableOfferings);
+
+    } catch (error) {
+      console.error('Error initializing app:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load subscription options. Please try again.',
+        [
+          {
+            text: 'Retry',
+            onPress: () => initializeApp()
+          },
+          {
+            text: 'Skip',
+            onPress: () => {
+              if (onComplete) onComplete();
+            }
+          }
+        ]
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleClose = () => {
     // Navigate to main app - reset the navigation stack
@@ -35,16 +110,169 @@ export default function PaymentScreen({ navigation, onComplete }) {
     }
   };
 
-  const handleSubscribe = () => {
-    // Handle subscription logic here
-    console.log('Selected plan:', selectedPlan);
-    console.log('Free trial enabled:', freeTrialEnabled);
-    
-    // Trigger completion to switch to main app
-    if (onComplete) {
-      onComplete();
+  const handleSubscribe = async () => {
+    if (!offerings || !offerings.current) {
+      Alert.alert('Error', 'Subscription options not available. Please try again.');
+      return;
+    }
+
+    try {
+      setPurchasing(true);
+      
+      // Find the selected package
+      let packageToPurchase;
+      const availablePackages = offerings.current.availablePackages;
+      
+      if (selectedPlan === 'yearly') {
+        // Look for yearly package
+        packageToPurchase = availablePackages.find(pkg => 
+          pkg.packageType === 'ANNUAL' || 
+          pkg.identifier.includes('yearly') ||
+          pkg.identifier === 'ketometer_yearly' ||
+          pkg.product.identifier === 'ketometer_yearly'
+        );
+      } else if (selectedPlan === 'trial') {
+        // Look for weekly package (trial)
+        packageToPurchase = availablePackages.find(pkg => 
+          pkg.packageType === 'WEEKLY' || 
+          pkg.identifier.includes('weekly') ||
+          pkg.identifier === 'ketometer_weekly' ||
+          pkg.product.identifier === 'ketometer_weekly'
+        );
+      }
+
+      if (!packageToPurchase) {
+        throw new Error('Selected subscription plan not found');
+      }
+
+      console.log('Purchasing package:', packageToPurchase.identifier);
+      
+      // Attempt purchase
+      const result = await purchasePackage(packageToPurchase);
+      
+      if (result.success) {
+        Alert.alert(
+          'Success!',
+          'Your subscription is now active. Welcome to KetoMeter Premium!',
+          [
+            {
+              text: 'Continue',
+              onPress: () => {
+                if (onComplete) onComplete();
+              }
+            }
+          ]
+        );
+      } else if (result.userCancelled) {
+        // User cancelled, no action needed
+        console.log('Purchase cancelled by user');
+      } else {
+        throw new Error(result.error || 'Purchase failed');
+      }
+      
+    } catch (error) {
+      console.error('Purchase error:', error);
+      Alert.alert(
+        'Purchase Failed',
+        error.message || 'Something went wrong. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setPurchasing(false);
     }
   };
+
+  const handleRestore = async () => {
+    try {
+      setPurchasing(true);
+      
+      const result = await restorePurchases();
+      
+      if (result.success) {
+        const hasActive = hasActiveSubscription(result.customerInfo);
+        
+        if (hasActive) {
+          Alert.alert(
+            'Purchases Restored',
+            'Your previous purchases have been restored successfully!',
+            [
+              {
+                text: 'Continue',
+                onPress: () => {
+                  if (onComplete) onComplete();
+                }
+              }
+            ]
+          );
+        } else {
+          Alert.alert(
+            'No Purchases Found',
+            'No previous purchases were found to restore.',
+            [{ text: 'OK' }]
+          );
+        }
+      } else {
+        throw new Error(result.error || 'Failed to restore purchases');
+      }
+      
+    } catch (error) {
+      console.error('Restore error:', error);
+      Alert.alert(
+        'Restore Failed',
+        error.message || 'Failed to restore purchases. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setPurchasing(false);
+    }
+  };
+
+  // Show loading screen while initializing
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer, { paddingTop: insets.top }]}>
+        <ActivityIndicator size="large" color="#4ECDC4" />
+        <Text style={styles.loadingText}>Loading subscription options...</Text>
+      </View>
+    );
+  }
+
+  // Get pricing from RevenueCat offerings
+  const getPricingInfo = () => {
+    if (!offerings?.current?.availablePackages) {
+      return {
+        yearly: { price: '₹299.00/year', originalPrice: '₹2,999.00' },
+        weekly: { price: '₹99.00/week', trialText: 'FREE' }
+      };
+    }
+
+    const packages = offerings.current.availablePackages;
+    const yearlyPackage = packages.find(pkg => 
+      pkg.packageType === 'ANNUAL' || 
+      pkg.identifier.includes('yearly') ||
+      pkg.identifier === 'ketometer_yearly' ||
+      pkg.product.identifier === 'ketometer_yearly'
+    );
+    const weeklyPackage = packages.find(pkg => 
+      pkg.packageType === 'WEEKLY' || 
+      pkg.identifier.includes('weekly') ||
+      pkg.identifier === 'ketometer_weekly' ||
+      pkg.product.identifier === 'ketometer_weekly'
+    );
+
+    return {
+      yearly: {
+        price: yearlyPackage?.product.priceString || '₹299.00/year',
+        originalPrice: '₹2,999.00'
+      },
+      weekly: {
+        price: weeklyPackage?.product.priceString || '₹99.00/week',
+        trialText: 'FREE'
+      }
+    };
+  };
+
+  const pricing = getPricingInfo();
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -103,8 +331,8 @@ export default function PaymentScreen({ navigation, onComplete }) {
               <View style={styles.planLeft}>
                 <Text style={styles.planTitle}>Yearly Plan</Text>
                 <View style={styles.priceContainer}>
-                  <Text style={styles.originalPrice}>₹2,999.00</Text>
-                  <Text style={styles.discountedPrice}>₹299.00 per year</Text>
+                  <Text style={styles.originalPrice}>{pricing.yearly.originalPrice}</Text>
+                  <Text style={styles.discountedPrice}>{pricing.yearly.price}</Text>
                 </View>
               </View>
               <View style={styles.planRight}>
@@ -134,7 +362,7 @@ export default function PaymentScreen({ navigation, onComplete }) {
             <View style={styles.planContent}>
               <View style={styles.planLeft}>
                 <Text style={styles.planTitle}>3-Day Trial</Text>
-                <Text style={styles.trialPrice}>then ₹99.00 per week</Text>
+                <Text style={styles.trialPrice}>then {pricing.weekly.price}</Text>
               </View>
               <View style={styles.planRight}>
                 <Text style={styles.freeText}>FREE</Text>
@@ -173,15 +401,25 @@ export default function PaymentScreen({ navigation, onComplete }) {
 
       {/* CTA Button */}
       <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 4 }]}>
-        <TouchableOpacity style={styles.subscribeButton} onPress={handleSubscribe}>
-          <Text style={styles.subscribeButtonText}>Try for Free</Text>
-          <Feather name="chevron-right" size={20} color="#fff" />
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.subscribeButton, purchasing && styles.subscribeButtonDisabled]} 
+            onPress={handleSubscribe}
+            disabled={purchasing}
+          >
+            {purchasing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <>
+                <Text style={styles.subscribeButtonText}>Try for Free</Text>
+                <Feather name="chevron-right" size={20} color="#fff" />
+              </>
+            )}
+          </TouchableOpacity>
 
         {/* Footer Links */}
         <View style={styles.footerLinks}>
-          <TouchableOpacity>
-            <Text style={styles.footerLink}>Restore</Text>
+          <TouchableOpacity onPress={handleRestore} disabled={purchasing}>
+            <Text style={[styles.footerLink, purchasing && styles.footerLinkDisabled]}>Restore</Text>
           </TouchableOpacity>
           <TouchableOpacity>
             <Text style={styles.footerLink}>Terms of Use</Text>
@@ -438,5 +676,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     color: '#8E8E93',
     textDecorationLine: 'underline',
+  },
+  footerLinkDisabled: {
+    color: '#C7C7CC',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter_500Medium',
+    color: '#666',
+    marginTop: 16,
+  },
+  subscribeButtonDisabled: {
+    opacity: 0.6,
   },
 });
