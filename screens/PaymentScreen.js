@@ -170,7 +170,7 @@ export default function PaymentScreen({ navigation, onComplete }) {
       </ScrollView>
 
       {/* CTA Button */}
-      <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 20 }]}>
+      <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 10 }]}>
         <TouchableOpacity style={styles.subscribeButton} onPress={handleSubscribe}>
           <Text style={styles.subscribeButtonText}>Try for Free</Text>
           <Feather name="chevron-right" size={20} color="#fff" />
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
     shadowColor: '#4ECDC4',
     shadowOffset: {
       width: 0,
