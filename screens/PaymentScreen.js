@@ -85,12 +85,6 @@ export default function PaymentScreen({ navigation, onComplete }) {
             <Text style={styles.featureText}>Get personalized keto insights</Text>
           </View>
 
-          <View style={styles.featureItem}>
-            <View style={styles.featureIcon}>
-              <Feather name="trending-up" size={16} color="#4ECDC4" />
-            </View>
-            <Text style={styles.featureText}>Track your keto progress</Text>
-          </View>
         </View>
 
         {/* Subscription Plans */}
@@ -224,7 +218,7 @@ const styles = StyleSheet.create({
   },
   visualContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   iconContainer: {
     width: 120,
@@ -233,17 +227,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDFA',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#4ECDC4',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    marginTop: 24,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontFamily: 'Inter_700Bold',
     color: '#1A1A1A',
     textAlign: 'center',
