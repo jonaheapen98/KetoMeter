@@ -9,18 +9,18 @@ const { width, height } = Dimensions.get('window');
 const onboardingData = [
   {
     id: 1,
-    title: "Welcome to KetoMeter",
-    subtitle: "Your AI-Powered Keto Companion",
-    description: "Transform your keto journey with intelligent food analysis. Get instant insights, track your progress, and make informed choices every time you eat.",
+    title: "Get Started",
+    subtitle: "Welcome to KetoMeter",
+    description: "Your intelligent companion for the keto lifestyle. Get instant, accurate analysis of any food to stay on track with your ketogenic diet goals.",
     icon: "zap",
     color: "#4ECDC4",
     image: null
   },
   {
     id: 2,
-    title: "Why Keto Tracking Matters",
+    title: "Why Keto Tracking is Crucial",
     subtitle: "The Hidden Challenge",
-    description: "Keto success isn't just about avoiding carbs—it's about understanding what's really in your food. Restaurant meals, packaged foods, and even 'healthy' options can derail your progress with hidden sugars and starches.",
+    description: "Keto success isn't just about avoiding obvious carbs. Hidden sugars, starches, and additives lurk in restaurant meals, packaged foods, and even 'healthy' options. Without knowing what's really in your food, especially when dining out, your keto progress can be derailed by ingredients you never suspected.",
     icon: "target",
     color: "#FF6B35",
     image: null
@@ -29,16 +29,16 @@ const onboardingData = [
     id: 3,
     title: "Type & Describe",
     subtitle: "Simple Text Analysis",
-    description: "Just tell us what you're eating! Our AI understands natural language descriptions and provides detailed keto analysis with nutritional insights and recommendations.",
+    description: "Just describe what you're eating in plain English. Our AI understands natural language and instantly provides detailed keto analysis, nutritional breakdown, and personalized recommendations to keep you on track.",
     icon: "edit-3",
     color: "#45B7D1",
     image: null
   },
   {
     id: 4,
-    title: "Scan Food & Labels",
+    title: "Scan Food & Nutrition Labels",
     subtitle: "Visual Intelligence",
-    description: "Point your camera at any food or nutrition label. Our advanced AI instantly recognizes ingredients, analyzes nutritional content, and gives you a precise keto compatibility score.",
+    description: "Point your camera at any food item or nutrition label. Our advanced AI instantly recognizes ingredients, analyzes nutritional content, and gives you a precise keto compatibility score with detailed insights.",
     icon: "camera",
     color: "#96CEB4",
     image: null
@@ -46,8 +46,8 @@ const onboardingData = [
   {
     id: 5,
     title: "Scan Menus",
-    subtitle: "Dining Made Easy",
-    description: "Never guess again at restaurants! Scan any menu and get instant keto-friendly recommendations. We'll show you exactly which dishes work for your diet and why.",
+    subtitle: "Find Keto-Friendly Options",
+    description: "Never guess again at restaurants! Scan any menu and instantly discover which dishes are keto-friendly. We'll show you exactly what to order, what to avoid, and how to modify meals to fit your diet.",
     icon: "book-open",
     color: "#FFEAA7",
     image: null
@@ -108,7 +108,7 @@ export default function OnboardingScreen({ navigation }) {
       <View style={styles.content}>
         {/* Icon */}
         <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
-          <Feather name={item.icon} size={48} color="#fff" />
+          <Feather name={item.icon} size={56} color="#fff" />
         </View>
 
         {/* Title */}
@@ -219,16 +219,16 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   progressBar: {
-    height: 4,
+    height: 6,
     backgroundColor: '#F0F0F0',
-    borderRadius: 2,
+    borderRadius: 3,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#4ECDC4',
-    borderRadius: 2,
+    borderRadius: 3,
   },
   progressText: {
     fontSize: 12,
@@ -251,41 +251,42 @@ const styles = StyleSheet.create({
     maxWidth: 320,
   },
   iconContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 8,
+      height: 12,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontFamily: 'Inter_700Bold',
     color: '#1A1A1A',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Inter_600SemiBold',
-    color: '#666',
+    color: '#4A4A4A',
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   description: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: 'Inter_400Regular',
     color: '#666',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 26,
+    paddingHorizontal: 8,
   },
   navigation: {
     paddingHorizontal: 20,
