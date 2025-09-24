@@ -9,9 +9,11 @@ export default function PaymentScreen({ navigation, onComplete }) {
   const insets = useSafeAreaInsets();
 
   const handleClose = () => {
-    // If we're in onboarding flow, go back to onboarding
-    // If we're in main app, go back to main app
-    navigation.goBack();
+    // Navigate to main app - reset the navigation stack
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainTabs' }],
+    });
   };
 
   const handlePlanSelect = (plan) => {
@@ -170,7 +172,7 @@ export default function PaymentScreen({ navigation, onComplete }) {
       </ScrollView>
 
       {/* CTA Button */}
-      <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 10 }]}>
+      <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 4 }]}>
         <TouchableOpacity style={styles.subscribeButton} onPress={handleSubscribe}>
           <Text style={styles.subscribeButtonText}>Try for Free</Text>
           <Feather name="chevron-right" size={20} color="#fff" />
@@ -411,7 +413,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
     shadowColor: '#4ECDC4',
     shadowOffset: {
       width: 0,
