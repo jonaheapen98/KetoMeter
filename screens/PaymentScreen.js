@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   plansContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   planCard: {
     backgroundColor: '#F8F9FA',
