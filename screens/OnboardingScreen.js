@@ -10,7 +10,6 @@ const onboardingData = [
   {
     id: 1,
     title: "Get Started",
-    subtitle: "Welcome to KetoMeter",
     description: "Your intelligent companion for the keto lifestyle. Get instant, accurate analysis of any food to stay on track with your ketogenic diet goals.",
     icon: "zap",
     color: "#4ECDC4",
@@ -19,7 +18,6 @@ const onboardingData = [
   {
     id: 2,
     title: "Why Keto Tracking is Crucial",
-    subtitle: "The Hidden Challenge",
     description: "Keto success isn't just about avoiding obvious carbs. Hidden sugars, starches, and additives lurk in restaurant meals, packaged foods, and even 'healthy' options. Without knowing what's really in your food, especially when dining out, your keto progress can be derailed by ingredients you never suspected.",
     icon: "target",
     color: "#FF6B35",
@@ -29,7 +27,6 @@ const onboardingData = [
   {
     id: 3,
     title: "Type & Describe",
-    subtitle: "Simple Text Analysis",
     description: "Just describe what you're eating in plain English. Our AI understands natural language and instantly provides detailed keto analysis, nutritional breakdown, and personalized recommendations to keep you on track.",
     icon: "edit-3",
     color: "#45B7D1",
@@ -38,7 +35,6 @@ const onboardingData = [
   {
     id: 4,
     title: "Scan Food & Nutrition Labels",
-    subtitle: "Visual Intelligence",
     description: "Point your camera at any food item or nutrition label. Our advanced AI instantly recognizes ingredients, analyzes nutritional content, and gives you a precise keto compatibility score with detailed insights.",
     icon: "camera",
     color: "#96CEB4",
@@ -47,7 +43,6 @@ const onboardingData = [
   {
     id: 5,
     title: "Scan Menus",
-    subtitle: "Find Keto-Friendly Options",
     description: "Never guess again at restaurants! Scan any menu and instantly discover which dishes are keto-friendly. We'll show you exactly what to order, what to avoid, and how to modify meals to fit your diet.",
     icon: "book-open",
     color: "#FFEAA7",
@@ -171,7 +166,6 @@ export default function OnboardingScreen({ navigation, onComplete }) {
                 <>
                   {/* Title */}
                   <Text style={styles.title}>{item.title}</Text>
-                  <Text style={styles.subtitle}>{item.subtitle}</Text>
 
                   {/* Visual Cards */}
                   <View style={styles.challengeCards}>
@@ -234,7 +228,6 @@ export default function OnboardingScreen({ navigation, onComplete }) {
 
                   {/* Title */}
                   <Text style={styles.title}>{item.title}</Text>
-                  <Text style={styles.subtitle}>{item.subtitle}</Text>
 
                   {/* Description */}
                   <Text style={styles.description}>{item.description}</Text>
@@ -307,20 +300,19 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     paddingVertical: 20,
   },
   specialSlideContent: {
     flexGrow: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     paddingVertical: 20,
   },
   content: {
     alignItems: 'center',
     justifyContent: 'center',
-    maxWidth: 320,
     flex: 1,
   },
   specialContent: {
@@ -328,7 +320,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     width: '100%',
     flex: 1,
-    paddingTop: 20,
+    paddingTop: 0,
   },
   iconsRow: {
     flexDirection: 'row',
@@ -379,7 +371,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     color: '#4A4A4A',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 0,
   },
   description: {
     fontSize: 17,
