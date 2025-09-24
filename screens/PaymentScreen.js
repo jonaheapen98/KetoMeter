@@ -142,8 +142,13 @@ export default function PaymentScreen({ navigation, onComplete }) {
               </View>
               <View style={styles.planRight}>
                 <Text style={styles.freeText}>FREE</Text>
-                <View style={styles.checkIcon}>
-                  <Feather name="check" size={16} color="#4ECDC4" />
+                <View style={[
+                  styles.radioButton,
+                  selectedPlan === 'trial' && styles.radioButtonSelected
+                ]}>
+                  {selectedPlan === 'trial' && (
+                    <View style={styles.radioButtonInner} />
+                  )}
                 </View>
               </View>
             </View>
@@ -337,14 +342,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: '#4ECDC4',
     marginBottom: 8,
-  },
-  checkIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#F0FDFA',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   radioButton: {
     width: 20,
