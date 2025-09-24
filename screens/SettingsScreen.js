@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { resetOnboarding } from '../lib/database';
 
 export default function SettingsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -17,6 +18,43 @@ export default function SettingsScreen({ navigation }) {
     } catch (error) {
       Alert.alert('Error', `Failed to open ${title}`);
     }
+  };
+
+  const handleStartOnboarding = () => {
+    Alert.alert(
+      'Start Onboarding',
+      'This will reset your onboarding state and show the onboarding flow again. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Start Onboarding',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await resetOnboarding();
+              Alert.alert(
+                'Success',
+                'Onboarding state reset. The app will now show the onboarding flow.',
+                [
+                  { 
+                    text: 'OK', 
+                    onPress: () => {
+                      // Navigate to onboarding immediately
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Onboarding' }],
+                      });
+                    }
+                  }
+                ]
+              );
+            } catch (error) {
+              Alert.alert('Error', 'Failed to reset onboarding state. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -65,6 +103,27 @@ export default function SettingsScreen({ navigation }) {
                 <Text style={styles.settingItemTitle}>Privacy Policy</Text>
               </View>
               <Feather name="external-link" size={16} color="#8E8E93" />
+            </View>
+          </TouchableOpacity>
+
+          {/* Debug Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Debug</Text>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={handleStartOnboarding}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingItemContent}>
+              <View style={styles.settingItemLeft}>
+                <View style={styles.iconContainer}>
+                  <Feather name="refresh-cw" size={20} color="#FF6B35" />
+                </View>
+                <Text style={styles.settingItemTitle}>Start Onboarding</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#8E8E93" />
             </View>
           </TouchableOpacity>
         </View>
