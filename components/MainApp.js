@@ -22,6 +22,7 @@ export default function MainApp() {
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [paymentSkipped, setPaymentSkipped] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -34,10 +35,17 @@ export default function MainApp() {
     setRefreshKey(prev => prev + 1);
   };
 
-  // Function to handle payment completion or skip
+  // Function to handle payment completion
   const handlePaymentComplete = () => {
-    console.log('Payment completed or skipped, checking status...');
+    console.log('Payment completed, checking status...');
     setRefreshKey(prev => prev + 1);
+  };
+
+  // Function to handle payment skip
+  const handlePaymentSkip = () => {
+    console.log('Payment skipped, going to main app...');
+    setPaymentSkipped(true);
+    setShowPayment(false);
   };
 
   const checkOnboardingStatus = async () => {
@@ -52,12 +60,13 @@ export default function MainApp() {
       if (!onboardingComplete) {
         setShowOnboarding(true);
         setShowPayment(false);
+        setPaymentSkipped(false);
       } else {
         // Check if user is premium
         const isPremium = await isUserPremium();
         console.log('User premium status:', isPremium);
         
-        if (!isPremium) {
+        if (!isPremium && !paymentSkipped) {
           setShowPayment(true);
           setShowOnboarding(false);
         } else {
@@ -102,7 +111,7 @@ export default function MainApp() {
           name="Payment" 
           options={{ gestureEnabled: false }}
         >
-          {(props) => <PaymentScreen {...props} onComplete={handlePaymentComplete} />}
+          {(props) => <PaymentScreen {...props} onComplete={handlePaymentComplete} onSkip={handlePaymentSkip} />}
         </Stack.Screen>
       ) : (
             <>

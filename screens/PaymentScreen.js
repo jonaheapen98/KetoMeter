@@ -12,7 +12,7 @@ import {
 } from '../lib/revenuecat';
 import { setPremiumStatus } from '../lib/database';
 
-export default function PaymentScreen({ navigation, onComplete }) {
+export default function PaymentScreen({ navigation, onComplete, onSkip }) {
   const [selectedPlan, setSelectedPlan] = useState('trial');
   const [freeTrialEnabled, setFreeTrialEnabled] = useState(true);
   const [offerings, setOfferings] = useState(null);
@@ -85,11 +85,11 @@ export default function PaymentScreen({ navigation, onComplete }) {
   };
 
   const handleClose = () => {
-    // Navigate to main app - reset the navigation stack
-    // User can still use the app but with limitations (paywall on analysis)
-    if (onComplete) {
-      onComplete(); // Trigger re-check in MainApp
+    // User is skipping the payment wall
+    if (onSkip) {
+      onSkip(); // Tell MainApp that payment was skipped
     } else {
+      // Fallback navigation
       navigation.reset({
         index: 0,
         routes: [{ name: 'MainTabs' }],
