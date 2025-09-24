@@ -103,23 +103,6 @@ export default function OnboardingScreen({ navigation }) {
     }
   };
 
-  const renderSlide = (item, index) => (
-    <View key={item.id} style={[styles.slide, { width }]}>
-      <View style={styles.content}>
-        {/* Single Icon for Current Page */}
-        <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
-          <Feather name={item.icon} size={56} color="#fff" />
-        </View>
-
-        {/* Title */}
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
-
-        {/* Description */}
-        <Text style={styles.description}>{item.description}</Text>
-      </View>
-    </View>
-  );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -169,7 +152,29 @@ export default function OnboardingScreen({ navigation }) {
         }}
         style={styles.slidesContainer}
       >
-        {onboardingData.map((item, index) => renderSlide(item, index))}
+        {onboardingData.map((item, index) => (
+          <ScrollView
+            key={item.id}
+            style={[styles.slide, { width }]}
+            contentContainerStyle={styles.slideContent}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
+            <View style={styles.content}>
+              {/* Single Icon for Current Page */}
+              <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
+                <Feather name={item.icon} size={56} color="#fff" />
+              </View>
+
+              {/* Title */}
+              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.subtitle}>{item.subtitle}</Text>
+
+              {/* Description */}
+              <Text style={styles.description}>{item.description}</Text>
+            </View>
+          </ScrollView>
+        ))}
       </ScrollView>
 
       {/* Navigation */}
@@ -183,10 +188,12 @@ export default function OnboardingScreen({ navigation }) {
           onPress={handleNext}
         >
           <Text style={styles.fullWidthButtonText}>
-            {currentIndex === onboardingData.length - 1 ? 'Get Started' : 'Next'}
+            {currentIndex === 0 ? 'Get Started' : 
+             currentIndex === onboardingData.length - 1 ? "Let's Begin" : 'Next'}
           </Text>
           <Feather 
-            name={currentIndex === onboardingData.length - 1 ? 'check' : 'arrow-right'} 
+            name={currentIndex === 0 ? 'arrow-right' : 
+                  currentIndex === onboardingData.length - 1 ? 'check' : 'arrow-right'} 
             size={20} 
             color="#fff" 
           />
@@ -227,9 +234,13 @@ const styles = StyleSheet.create({
   slide: {
     width: width,
     flex: 1,
+  },
+  slideContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
+    paddingVertical: 20,
   },
   content: {
     alignItems: 'center',
