@@ -123,19 +123,20 @@ export default function OnboardingScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Progress Bar */}
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
-          <View 
+      {/* Dots Indicator - Moved to top */}
+      <View style={styles.dotsContainer}>
+        {onboardingData.map((_, index) => (
+          <View
+            key={index}
             style={[
-              styles.progressFill, 
-              { width: `${((currentIndex + 1) / onboardingData.length) * 100}%` }
-            ]} 
+              styles.dot,
+              {
+                backgroundColor: index === currentIndex ? onboardingData[currentIndex]?.color : '#E0E0E0',
+                width: index === currentIndex ? 24 : 8,
+              }
+            ]}
           />
-        </View>
-        <Text style={styles.progressText}>
-          {currentIndex + 1} of {onboardingData.length}
-        </Text>
+        ))}
       </View>
 
       {/* Slides */}
@@ -170,16 +171,6 @@ export default function OnboardingScreen({ navigation }) {
           {/* Spacer */}
           <View style={{ flex: 1 }} />
 
-          {/* Skip Button */}
-          {currentIndex < onboardingData.length - 1 && (
-            <TouchableOpacity 
-              style={styles.skipButton}
-              onPress={handleSkip}
-            >
-              <Text style={styles.skipText}>Skip</Text>
-            </TouchableOpacity>
-          )}
-
           {/* Next/Get Started Button */}
           <TouchableOpacity 
             style={[
@@ -198,22 +189,6 @@ export default function OnboardingScreen({ navigation }) {
             />
           </TouchableOpacity>
         </View>
-
-        {/* Dots Indicator - Moved to center */}
-        <View style={styles.dotsContainer}>
-          {onboardingData.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: index === currentIndex ? onboardingData[currentIndex]?.color : '#E0E0E0',
-                  width: index === currentIndex ? 24 : 8,
-                }
-              ]}
-            />
-          ))}
-        </View>
       </View>
     </View>
   );
@@ -223,28 +198,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  progressContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  progressBar: {
-    height: 6,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#4ECDC4',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    fontFamily: 'Inter_500Medium',
-    color: '#666',
-    textAlign: 'right',
   },
   slidesContainer: {
     flex: 1,
@@ -341,15 +294,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 4,
   },
-  skipButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  skipText: {
-    fontSize: 16,
-    fontFamily: 'Inter_500Medium',
-    color: '#999',
-  },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -375,7 +319,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
   },
   dot: {
     height: 8,
