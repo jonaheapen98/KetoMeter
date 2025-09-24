@@ -61,7 +61,9 @@ export default function MainApp() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {showOnboarding ? (
-        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="Onboarding">
+          {(props) => <OnboardingScreen {...props} onComplete={triggerOnboardingCheck} />}
+        </Stack.Screen>
       ) : (
         <>
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} />

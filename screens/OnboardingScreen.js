@@ -54,7 +54,7 @@ const onboardingData = [
   }
 ];
 
-export default function OnboardingScreen({ navigation }) {
+export default function OnboardingScreen({ navigation, onComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef(null);
@@ -83,12 +83,16 @@ export default function OnboardingScreen({ navigation }) {
       await setOnboardingComplete();
       console.log('Onboarding completed successfully');
       
-      // Navigate to main tabs
-      navigation.replace('MainTabs');
+      // Trigger parent component to re-check onboarding status
+      if (onComplete) {
+        onComplete();
+      }
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      // Still navigate even if database update fails
-      navigation.replace('MainTabs');
+      // Still trigger completion even if database update fails
+      if (onComplete) {
+        onComplete();
+      }
     }
   };
 
