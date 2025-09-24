@@ -234,10 +234,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: '#1A1A1A',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 20,
   },
   featuresContainer: {
-    marginBottom: 40,
+    marginBottom: 16,
+    paddingHorizontal: 20,
   },
   featureItem: {
     flexDirection: 'row',
@@ -260,13 +261,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   plansContainer: {
-    marginBottom: 32,
+    marginBottom: 20,
   },
   planCard: {
     backgroundColor: '#F8F9FA',
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginBottom: 10,
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -283,7 +285,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   planTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter_700Bold',
     color: '#1A1A1A',
     marginBottom: 4,
@@ -300,7 +302,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   discountedPrice: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter_600SemiBold',
     color: '#1A1A1A',
   },
@@ -352,7 +354,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   toggleLabel: {
     fontSize: 16,
