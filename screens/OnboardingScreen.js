@@ -126,16 +126,18 @@ export default function OnboardingScreen({ navigation }) {
       {/* Header with Back Button and Dots */}
       <View style={styles.header}>
         {/* Back Button */}
-        {currentIndex > 0 && (
-          <TouchableOpacity 
-            style={styles.topBackButton}
-            onPress={handlePrevious}
-          >
-            <Feather name="arrow-left" size={24} color="#666" />
-          </TouchableOpacity>
-        )}
+        <View style={styles.backButtonContainer}>
+          {currentIndex > 0 && (
+            <TouchableOpacity 
+              style={styles.topBackButton}
+              onPress={handlePrevious}
+            >
+              <Feather name="arrow-left" size={24} color="#666" />
+            </TouchableOpacity>
+          )}
+        </View>
         
-        {/* Dots Indicator */}
+        {/* Dots Indicator - Always Centered */}
         <View style={styles.dotsContainer}>
           {onboardingData.map((_, index) => (
             <View
@@ -152,7 +154,7 @@ export default function OnboardingScreen({ navigation }) {
         </View>
         
         {/* Spacer for back button alignment */}
-        <View style={styles.headerSpacer} />
+        <View style={styles.backButtonContainer} />
       </View>
 
       {/* Slides */}
@@ -202,9 +204,14 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 20,
+  },
+  backButtonContainer: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   topBackButton: {
     width: 40,
@@ -213,9 +220,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  headerSpacer: {
-    width: 40,
   },
   slidesContainer: {
     flex: 1,
@@ -322,6 +326,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
+    position: 'absolute',
+    left: 0,
+    right: 0,
   },
   dot: {
     height: 8,
