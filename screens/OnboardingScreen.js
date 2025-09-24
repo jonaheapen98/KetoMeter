@@ -23,7 +23,8 @@ const onboardingData = [
     description: "Keto success isn't just about avoiding obvious carbs. Hidden sugars, starches, and additives lurk in restaurant meals, packaged foods, and even 'healthy' options. Without knowing what's really in your food, especially when dining out, your keto progress can be derailed by ingredients you never suspected.",
     icon: "target",
     color: "#FF6B35",
-    image: null
+    image: null,
+    isSpecialPage: true
   },
   {
     id: 3,
@@ -165,17 +166,72 @@ export default function OnboardingScreen({ navigation, onComplete }) {
             bounces={false}
           >
             <View style={styles.content}>
-              {/* Single Icon for Current Page */}
-              <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
-                <Feather name={item.icon} size={56} color="#fff" />
-              </View>
+              {item.isSpecialPage ? (
+                // Special layout for page 2
+                <>
+                  {/* Title */}
+                  <Text style={styles.title}>{item.title}</Text>
+                  <Text style={styles.subtitle}>{item.subtitle}</Text>
 
-              {/* Title */}
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.subtitle}>{item.subtitle}</Text>
+                  {/* Visual Cards */}
+                  <View style={styles.challengeCards}>
+                    <View style={styles.challengeCard}>
+                      <View style={styles.challengeIconContainer}>
+                        <Feather name="eye-off" size={24} color="#FF6B35" />
+                      </View>
+                      <Text style={styles.challengeTitle}>Hidden Ingredients</Text>
+                      <Text style={styles.challengeDescription}>
+                        Sugars and starches lurk in unexpected places
+                      </Text>
+                    </View>
 
-              {/* Description */}
-              <Text style={styles.description}>{item.description}</Text>
+                    <View style={styles.challengeCard}>
+                      <View style={styles.challengeIconContainer}>
+                        <Feather name="utensils" size={24} color="#FF6B35" />
+                      </View>
+                      <Text style={styles.challengeTitle}>Restaurant Meals</Text>
+                      <Text style={styles.challengeDescription}>
+                        Unknown ingredients in dining out
+                      </Text>
+                    </View>
+
+                    <View style={styles.challengeCard}>
+                      <View style={styles.challengeIconContainer}>
+                        <Feather name="package" size={24} color="#FF6B35" />
+                      </View>
+                      <Text style={styles.challengeTitle}>Packaged Foods</Text>
+                      <Text style={styles.challengeDescription}>
+                        Misleading "healthy" labels hide carbs
+                      </Text>
+                    </View>
+
+                    <View style={styles.challengeCard}>
+                      <View style={styles.challengeIconContainer}>
+                        <Feather name="alert-triangle" size={24} color="#FF6B35" />
+                      </View>
+                      <Text style={styles.challengeTitle}>Progress Derailed</Text>
+                      <Text style={styles.challengeDescription}>
+                        One wrong ingredient can break ketosis
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              ) : (
+                // Standard layout for other pages
+                <>
+                  {/* Single Icon for Current Page */}
+                  <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
+                    <Feather name={item.icon} size={56} color="#fff" />
+                  </View>
+
+                  {/* Title */}
+                  <Text style={styles.title}>{item.title}</Text>
+                  <Text style={styles.subtitle}>{item.subtitle}</Text>
+
+                  {/* Description */}
+                  <Text style={styles.description}>{item.description}</Text>
+                </>
+              )}
             </View>
           </ScrollView>
         ))}
@@ -349,5 +405,48 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     marginHorizontal: 4,
+  },
+  challengeCards: {
+    width: '100%',
+    marginTop: 32,
+  },
+  challengeCard: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  challengeIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFF5F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  challengeTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#1A1A1A',
+    marginBottom: 4,
+    flex: 1,
+  },
+  challengeDescription: {
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: '#666',
+    lineHeight: 20,
+    flex: 1,
   },
 });
