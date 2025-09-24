@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   plansContainer: {
-    marginBottom: 10,
+    marginBottom: 0,
   },
   toggleWrapper: {
     backgroundColor: '#F8F9FA',
@@ -272,13 +272,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   planCard: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     paddingHorizontal: 20,
     paddingVertical: 10,
     marginBottom: 10,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: '#E0E0E0',
   },
   planCardSelected: {
     backgroundColor: '#F0FDFA',
