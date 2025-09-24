@@ -150,20 +150,22 @@ export default function PaymentScreen({ navigation, onComplete }) {
         </View>
 
         {/* Free Trial Toggle */}
-        <View style={styles.toggleContainer}>
-          <Text style={styles.toggleLabel}>Free Trial Enabled</Text>
-          <TouchableOpacity
-            style={[
-              styles.toggle,
-              freeTrialEnabled && styles.toggleActive
-            ]}
-            onPress={handleToggleTrial}
-          >
-            <View style={[
-              styles.toggleThumb,
-              freeTrialEnabled && styles.toggleThumbActive
-            ]} />
-          </TouchableOpacity>
+        <View style={styles.toggleWrapper}>
+          <View style={styles.toggleContainer}>
+            <Text style={styles.toggleLabel}>Free Trial Enabled</Text>
+            <TouchableOpacity
+              style={[
+                styles.toggle,
+                freeTrialEnabled && styles.toggleActive
+              ]}
+              onPress={handleToggleTrial}
+            >
+              <View style={[
+                styles.toggleThumb,
+                freeTrialEnabled && styles.toggleThumbActive
+              ]} />
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -263,6 +265,12 @@ const styles = StyleSheet.create({
   plansContainer: {
     marginBottom: 10,
   },
+  toggleWrapper: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+  },
   planCard: {
     backgroundColor: '#F8F9FA',
     borderRadius: 16,
@@ -354,7 +362,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
   },
   toggleLabel: {
     fontSize: 16,
