@@ -8,7 +8,7 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export default function MenuImagePreviewScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  const { images } = route.params || {};
+  const { images = [] } = route?.params || {};
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [additionalDescription, setAdditionalDescription] = useState('');
   const scrollViewRef = React.useRef();
@@ -74,7 +74,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
         </ScrollView>
         <View style={styles.imageCounterContainer}>
           <Text style={styles.imageCounterText}>
-            {currentImageIndex + 1}/{images?.length || 0}
+            {String((currentImageIndex + 1) || 1)}/{String((images?.length) || 0)}
           </Text>
         </View>
       </View>
@@ -91,7 +91,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
             ]}
           >
             <Image
-              source={{ uri: image?.uri || '' }}
+              source={{ uri: String(image?.uri || '') }}
               style={styles.thumbnailImage}
               contentFit="cover"
             />
