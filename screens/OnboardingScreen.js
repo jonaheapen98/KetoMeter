@@ -79,16 +79,12 @@ export default function OnboardingScreen({ navigation, onComplete }) {
       await setOnboardingComplete();
       console.log('Onboarding completed successfully');
       
-      // Trigger parent component to re-check onboarding status
-      if (onComplete) {
-        onComplete();
-      }
+      // Navigate to Payment screen
+      navigation.navigate('Payment');
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      // Still trigger completion even if database update fails
-      if (onComplete) {
-        onComplete();
-      }
+      // Still navigate to Payment even if database update fails
+      navigation.navigate('Payment');
     }
   };
 
@@ -428,20 +424,10 @@ const styles = StyleSheet.create({
   },
   challengeCard: {
     borderRadius: 20,
-    padding: 24,
+    padding: 20,
     marginBottom: 20,
     width: '100%',
     alignSelf: 'stretch',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
   },
   challengeHeader: {
     flexDirection: 'row',
@@ -455,14 +441,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   challengeTitle: {
     fontSize: 18,

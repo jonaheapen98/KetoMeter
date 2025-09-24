@@ -14,6 +14,7 @@ import MenuImagePreviewScreen from '../screens/MenuImagePreviewScreen';
 import MenuReportScreen from '../screens/MenuReportScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import InfoScreen from '../screens/InfoScreen';
+import PaymentScreen from '../screens/PaymentScreen';
 
 const Stack = createStackNavigator();
 
@@ -116,6 +117,11 @@ export default function MainApp() {
           <Stack.Screen 
             name="Info" 
             component={InfoScreen}
+            options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen 
+            name="Payment" 
+            component={PaymentScreen}
             options={{ gestureEnabled: false }}
           />
         </>
