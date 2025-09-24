@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { analyzeFood } from '../lib/supabase';
-import { saveAnalysis } from '../lib/database';
+import { saveAnalysis, isUserPremium } from '../lib/database';
 
 export default function AnalyzeScreen({ navigation, route }) {
   const [progress, setProgress] = useState(0);
@@ -20,16 +20,41 @@ export default function AnalyzeScreen({ navigation, route }) {
   const isMenuAnalysis = route?.params?.inputType === 'menu';
 
   useEffect(() => {
-    // Start progress animation immediately
-    startProgressAnimation();
-    
-    // Start the actual analysis
-    if (images && images.length > 0) {
-      performImageAnalysis();
-    } else if (foodDescription) {
-      performTextAnalysis();
-    }
+    checkPremiumAndAnalyze();
   }, []);
+
+  const checkPremiumAndAnalyze = async () => {
+    try {
+      // Check if user is premium
+      const isPremium = await isUserPremium();
+      
+      if (!isPremium) {
+        // Show loader for a bit, then redirect to payment
+        startProgressAnimation();
+        setTimeout(() => {
+          navigation.navigate('Payment');
+        }, 3000); // Show loader for 3 seconds
+        return;
+      }
+      
+      // User is premium, proceed with analysis
+      startProgressAnimation();
+      
+      // Start the actual analysis
+      if (images && images.length > 0) {
+        performImageAnalysis();
+      } else if (foodDescription) {
+        performTextAnalysis();
+      }
+    } catch (error) {
+      console.error('Error checking premium status:', error);
+      // If error checking premium, show loader then payment wall
+      startProgressAnimation();
+      setTimeout(() => {
+        navigation.navigate('Payment');
+      }, 3000);
+    }
+  };
 
   const startProgressAnimation = () => {
     // Animate from 0 to 78% over 3-4 seconds

@@ -10,6 +10,7 @@ import {
   hasActiveSubscription,
   getSubscriptionStatus 
 } from '../lib/revenuecat';
+import { setPremiumStatus } from '../lib/database';
 
 export default function PaymentScreen({ navigation, onComplete }) {
   const [selectedPlan, setSelectedPlan] = useState('trial');
@@ -85,10 +86,15 @@ export default function PaymentScreen({ navigation, onComplete }) {
 
   const handleClose = () => {
     // Navigate to main app - reset the navigation stack
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'MainTabs' }],
-    });
+    // User can still use the app but with limitations (paywall on analysis)
+    if (onComplete) {
+      onComplete(); // Trigger re-check in MainApp
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
+    }
   };
 
   const handlePlanSelect = (plan) => {
@@ -151,6 +157,10 @@ export default function PaymentScreen({ navigation, onComplete }) {
       const result = await purchasePackage(packageToPurchase);
       
       if (result.success) {
+        // Set premium status in database
+        const premiumType = selectedPlan === 'yearly' ? 'yearly' : 'weekly';
+        await setPremiumStatus(true, premiumType);
+        
         Alert.alert(
           'Success!',
           'Your subscription is now active. Welcome to KetoMeter Premium!',
@@ -192,6 +202,9 @@ export default function PaymentScreen({ navigation, onComplete }) {
         const hasActive = hasActiveSubscription(result.customerInfo);
         
         if (hasActive) {
+          // Set premium status in database
+          await setPremiumStatus(true, 'restored');
+          
           Alert.alert(
             'Purchases Restored',
             'Your previous purchases have been restored successfully!',

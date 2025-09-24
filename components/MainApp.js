@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { isOnboardingComplete, initDatabase } from '../lib/database';
+import { isOnboardingComplete, initDatabase, isUserPremium } from '../lib/database';
 import BottomTabNavigator from './BottomTabNavigator';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import TypeFoodScreen from '../screens/TypeFoodScreen';
@@ -21,6 +21,7 @@ const Stack = createStackNavigator();
 export default function MainApp() {
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -33,6 +34,12 @@ export default function MainApp() {
     setRefreshKey(prev => prev + 1);
   };
 
+  // Function to handle payment completion or skip
+  const handlePaymentComplete = () => {
+    console.log('Payment completed or skipped, checking status...');
+    setRefreshKey(prev => prev + 1);
+  };
+
   const checkOnboardingStatus = async () => {
     try {
       // Ensure database is initialized first
@@ -41,11 +48,28 @@ export default function MainApp() {
       
       const onboardingComplete = await isOnboardingComplete();
       console.log('Onboarding complete status:', onboardingComplete);
-      setShowOnboarding(!onboardingComplete);
+      
+      if (!onboardingComplete) {
+        setShowOnboarding(true);
+        setShowPayment(false);
+      } else {
+        // Check if user is premium
+        const isPremium = await isUserPremium();
+        console.log('User premium status:', isPremium);
+        
+        if (!isPremium) {
+          setShowPayment(true);
+          setShowOnboarding(false);
+        } else {
+          setShowPayment(false);
+          setShowOnboarding(false);
+        }
+      }
     } catch (error) {
       console.error('Error checking onboarding status:', error);
       // Default to showing onboarding if there's an error
       setShowOnboarding(true);
+      setShowPayment(false);
     } finally {
       setIsLoading(false);
     }
@@ -60,20 +84,27 @@ export default function MainApp() {
   }
 
   return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {showOnboarding ? (
-            <>
-              <Stack.Screen name="Onboarding">
-                {(props) => <OnboardingScreen {...props} onComplete={triggerOnboardingCheck} />}
-              </Stack.Screen>
-              <Stack.Screen 
-                name="Payment" 
-                options={{ gestureEnabled: false }}
-              >
-                {(props) => <PaymentScreen {...props} onComplete={triggerOnboardingCheck} />}
-              </Stack.Screen>
-            </>
-          ) : (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {showOnboarding ? (
+        <>
+          <Stack.Screen name="Onboarding">
+            {(props) => <OnboardingScreen {...props} onComplete={triggerOnboardingCheck} />}
+          </Stack.Screen>
+          <Stack.Screen 
+            name="Payment" 
+            options={{ gestureEnabled: false }}
+          >
+            {(props) => <PaymentScreen {...props} onComplete={triggerOnboardingCheck} />}
+          </Stack.Screen>
+        </>
+      ) : showPayment ? (
+        <Stack.Screen 
+          name="Payment" 
+          options={{ gestureEnabled: false }}
+        >
+          {(props) => <PaymentScreen {...props} onComplete={handlePaymentComplete} />}
+        </Stack.Screen>
+      ) : (
             <>
               <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
           <Stack.Screen 
