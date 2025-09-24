@@ -176,40 +176,48 @@ export default function OnboardingScreen({ navigation, onComplete }) {
                   {/* Visual Cards */}
                   <View style={styles.challengeCards}>
                     <View style={styles.challengeCard}>
-                      <View style={styles.challengeIconContainer}>
-                        <Feather name="eye-off" size={24} color="#FF6B35" />
+                      <View style={styles.challengeHeader}>
+                        <View style={styles.challengeIconContainer}>
+                          <Feather name="eye-off" size={20} color="#FF6B35" />
+                        </View>
+                        <Text style={styles.challengeTitle}>Hidden Ingredients</Text>
                       </View>
-                      <Text style={styles.challengeTitle}>Hidden Ingredients</Text>
                       <Text style={styles.challengeDescription}>
                         Sugars and starches lurk in unexpected places
                       </Text>
                     </View>
 
                     <View style={styles.challengeCard}>
-                      <View style={styles.challengeIconContainer}>
-                        <Feather name="coffee" size={24} color="#FF6B35" />
+                      <View style={styles.challengeHeader}>
+                        <View style={styles.challengeIconContainer}>
+                          <Feather name="coffee" size={20} color="#FF6B35" />
+                        </View>
+                        <Text style={styles.challengeTitle}>Restaurant Meals</Text>
                       </View>
-                      <Text style={styles.challengeTitle}>Restaurant Meals</Text>
                       <Text style={styles.challengeDescription}>
                         Unknown ingredients in dining out
                       </Text>
                     </View>
 
                     <View style={styles.challengeCard}>
-                      <View style={styles.challengeIconContainer}>
-                        <Feather name="package" size={24} color="#FF6B35" />
+                      <View style={styles.challengeHeader}>
+                        <View style={styles.challengeIconContainer}>
+                          <Feather name="package" size={20} color="#FF6B35" />
+                        </View>
+                        <Text style={styles.challengeTitle}>Packaged Foods</Text>
                       </View>
-                      <Text style={styles.challengeTitle}>Packaged Foods</Text>
                       <Text style={styles.challengeDescription}>
                         Misleading "healthy" labels hide carbs
                       </Text>
                     </View>
 
                     <View style={styles.challengeCard}>
-                      <View style={styles.challengeIconContainer}>
-                        <Feather name="alert-triangle" size={24} color="#FF6B35" />
+                      <View style={styles.challengeHeader}>
+                        <View style={styles.challengeIconContainer}>
+                          <Feather name="alert-triangle" size={20} color="#FF6B35" />
+                        </View>
+                        <Text style={styles.challengeTitle}>Progress Derailed</Text>
                       </View>
-                      <Text style={styles.challengeTitle}>Progress Derailed</Text>
                       <Text style={styles.challengeDescription}>
                         One wrong ingredient can break ketosis
                       </Text>
@@ -431,8 +439,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
     width: '100%',
     alignSelf: 'stretch',
     shadowColor: '#000',
@@ -444,20 +450,24 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  challengeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   challengeIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#FFF5F0',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   challengeTitle: {
     fontSize: 16,
     fontFamily: 'Inter_600SemiBold',
     color: '#1A1A1A',
-    marginBottom: 4,
     flex: 1,
   },
   challengeDescription: {
@@ -465,6 +475,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     color: '#666',
     lineHeight: 20,
-    flex: 1,
   },
 });
