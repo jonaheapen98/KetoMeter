@@ -38,7 +38,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+      <View style={[styles.header, { paddingTop: (insets?.top || 0) + 10 }]}>
         <TouchableOpacity 
           style={styles.headerIcon}
           onPress={() => navigation.goBack()}
@@ -113,7 +113,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
       </ScrollView>
 
       {/* Analyze Button */}
-      <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 20 }]}>
+      <View style={[styles.buttonContainer, { paddingBottom: (insets?.bottom || 0) + 20 }]}>
         <TouchableOpacity
           style={styles.analyzeButton}
           onPress={handleAnalyze}
