@@ -19,7 +19,7 @@ export const REVENUECAT_CONFIG = {
   },
   
   // Entitlement identifier (configure this in RevenueCat dashboard)
-  entitlementId: 'premium', // This should match your RevenueCat entitlement identifier
+  entitlementId: 'entl510ad6fffb', // RevenueCat entitlement identifier
 };
 
 // Instructions for setup:
