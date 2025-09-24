@@ -123,20 +123,36 @@ export default function OnboardingScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Dots Indicator - Moved to top */}
-      <View style={styles.dotsContainer}>
-        {onboardingData.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              {
-                backgroundColor: index === currentIndex ? onboardingData[currentIndex]?.color : '#E0E0E0',
-                width: index === currentIndex ? 24 : 8,
-              }
-            ]}
-          />
-        ))}
+      {/* Header with Back Button and Dots */}
+      <View style={styles.header}>
+        {/* Back Button */}
+        {currentIndex > 0 && (
+          <TouchableOpacity 
+            style={styles.topBackButton}
+            onPress={handlePrevious}
+          >
+            <Feather name="arrow-left" size={24} color="#666" />
+          </TouchableOpacity>
+        )}
+        
+        {/* Dots Indicator */}
+        <View style={styles.dotsContainer}>
+          {onboardingData.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                {
+                  backgroundColor: index === currentIndex ? onboardingData[currentIndex]?.color : '#E0E0E0',
+                  width: index === currentIndex ? 24 : 8,
+                }
+              ]}
+            />
+          ))}
+        </View>
+        
+        {/* Spacer for back button alignment */}
+        <View style={styles.headerSpacer} />
       </View>
 
       {/* Slides */}
@@ -156,39 +172,23 @@ export default function OnboardingScreen({ navigation }) {
 
       {/* Navigation */}
       <View style={[styles.navigation, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.navigationButtons}>
-          {/* Previous Button */}
-          {currentIndex > 0 && (
-            <TouchableOpacity 
-              style={styles.previousButton}
-              onPress={handlePrevious}
-            >
-              <Feather name="arrow-left" size={20} color="#666" />
-              <Text style={styles.previousText}>Back</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Spacer */}
-          <View style={{ flex: 1 }} />
-
-          {/* Next/Get Started Button */}
-          <TouchableOpacity 
-            style={[
-              styles.nextButton,
-              { backgroundColor: onboardingData[currentIndex]?.color || '#4ECDC4' }
-            ]}
-            onPress={handleNext}
-          >
-            <Text style={styles.nextText}>
-              {currentIndex === onboardingData.length - 1 ? 'Get Started' : 'Next'}
-            </Text>
-            <Feather 
-              name={currentIndex === onboardingData.length - 1 ? 'check' : 'arrow-right'} 
-              size={20} 
-              color="#fff" 
-            />
-          </TouchableOpacity>
-        </View>
+        {/* Full Width Next/Get Started Button */}
+        <TouchableOpacity 
+          style={[
+            styles.fullWidthButton,
+            { backgroundColor: onboardingData[currentIndex]?.color || '#4ECDC4' }
+          ]}
+          onPress={handleNext}
+        >
+          <Text style={styles.fullWidthButtonText}>
+            {currentIndex === onboardingData.length - 1 ? 'Get Started' : 'Next'}
+          </Text>
+          <Feather 
+            name={currentIndex === onboardingData.length - 1 ? 'check' : 'arrow-right'} 
+            size={20} 
+            color="#fff" 
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -198,6 +198,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  topBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerSpacer: {
+    width: 40,
   },
   slidesContainer: {
     flex: 1,
@@ -277,29 +295,13 @@ const styles = StyleSheet.create({
   navigation: {
     paddingHorizontal: 20,
   },
-  navigationButtons: {
+  fullWidthButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
-  },
-  previousButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  previousText: {
-    fontSize: 16,
-    fontFamily: 'Inter_500Medium',
-    color: '#666',
-    marginLeft: 4,
-  },
-  nextButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
+    justifyContent: 'center',
+    paddingVertical: 18,
     paddingHorizontal: 24,
-    borderRadius: 25,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -309,7 +311,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  nextText: {
+  fullWidthButtonText: {
     fontSize: 16,
     fontFamily: 'Inter_600SemiBold',
     color: '#fff',
@@ -319,8 +321,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    flex: 1,
   },
   dot: {
     height: 8,
