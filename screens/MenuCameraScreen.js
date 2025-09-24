@@ -75,7 +75,14 @@ export default function MenuCameraScreen({ navigation }) {
 
       if (!result.canceled && result.assets) {
         console.log('Adding new images:', result.assets);
-        setCapturedImages(prev => [...prev, ...result.assets]);
+        // Clean and validate gallery images before adding
+        const cleanAssets = result.assets.map(asset => ({
+          uri: asset?.uri || '',
+          width: asset?.width || 0,
+          height: asset?.height || 0,
+        })).filter(asset => asset.uri && asset.uri.trim() !== '');
+        
+        setCapturedImages(prev => [...prev, ...cleanAssets]);
       }
     } catch (error) {
       console.error('Gallery error:', error);
@@ -92,7 +99,15 @@ export default function MenuCameraScreen({ navigation }) {
       Alert.alert('No Photos', 'Please take or select at least one photo to proceed.');
       return;
     }
-    navigation.navigate('MenuImagePreview', { images: capturedImages });
+    
+    // Clean and validate image data before passing
+    const cleanImages = capturedImages.map(image => ({
+      uri: image?.uri || '',
+      width: image?.width || 0,
+      height: image?.height || 0,
+    })).filter(image => image.uri && image.uri.trim() !== '');
+    
+    navigation.navigate('MenuImagePreview', { images: cleanImages });
   };
 
   const goBack = () => {
