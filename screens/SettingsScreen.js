@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { resetOnboarding } from '../lib/database';
+import { resetOnboarding, clearAllSettings } from '../lib/database';
 
 export default function SettingsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
@@ -39,8 +39,8 @@ export default function SettingsScreen({ navigation }) {
                   { 
                     text: 'OK', 
                     onPress: () => {
-                      // Navigate to onboarding immediately
-                      navigation.reset({
+                      // Navigate to onboarding using parent navigator
+                      navigation.getParent()?.reset({
                         index: 0,
                         routes: [{ name: 'Onboarding' }],
                       });
@@ -50,6 +50,43 @@ export default function SettingsScreen({ navigation }) {
               );
             } catch (error) {
               Alert.alert('Error', 'Failed to reset onboarding state. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleClearAllSettings = () => {
+    Alert.alert(
+      'Clear All Settings',
+      'This will clear all app settings including onboarding state. This action cannot be undone. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear All',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clearAllSettings();
+              Alert.alert(
+                'Success',
+                'All settings cleared. The app will now show the onboarding flow.',
+                [
+                  { 
+                    text: 'OK', 
+                    onPress: () => {
+                      // Navigate to onboarding using parent navigator
+                      navigation.getParent()?.reset({
+                        index: 0,
+                        routes: [{ name: 'Onboarding' }],
+                      });
+                    }
+                  }
+                ]
+              );
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear settings. Please try again.');
             }
           },
         },
@@ -122,6 +159,22 @@ export default function SettingsScreen({ navigation }) {
                   <Feather name="refresh-cw" size={20} color="#FF6B35" />
                 </View>
                 <Text style={styles.settingItemTitle}>Start Onboarding</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#8E8E93" />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.settingItem}
+            onPress={handleClearAllSettings}
+            activeOpacity={0.7}
+          >
+            <View style={styles.settingItemContent}>
+              <View style={styles.settingItemLeft}>
+                <View style={styles.iconContainer}>
+                  <Feather name="trash-2" size={20} color="#F44336" />
+                </View>
+                <Text style={styles.settingItemTitle}>Clear All Settings</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#8E8E93" />
             </View>
