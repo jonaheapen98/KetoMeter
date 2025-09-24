@@ -169,10 +169,10 @@ export default function OnboardingScreen({ navigation, onComplete }) {
 
                   {/* Visual Cards */}
                   <View style={styles.challengeCards}>
-                    <View style={styles.challengeCard}>
+                    <View style={[styles.challengeCard, { backgroundColor: '#FFF5F0' }]}>
                       <View style={styles.challengeHeader}>
-                        <View style={styles.challengeIconContainer}>
-                          <Feather name="eye-off" size={20} color="#FF6B35" />
+                        <View style={[styles.challengeIconContainer, { backgroundColor: '#FF6B35' }]}>
+                          <Feather name="eye-off" size={20} color="#fff" />
                         </View>
                         <Text style={styles.challengeTitle}>Hidden Ingredients</Text>
                       </View>
@@ -181,10 +181,10 @@ export default function OnboardingScreen({ navigation, onComplete }) {
                       </Text>
                     </View>
 
-                    <View style={styles.challengeCard}>
+                    <View style={[styles.challengeCard, { backgroundColor: '#F0F8FF' }]}>
                       <View style={styles.challengeHeader}>
-                        <View style={styles.challengeIconContainer}>
-                          <Feather name="coffee" size={20} color="#FF6B35" />
+                        <View style={[styles.challengeIconContainer, { backgroundColor: '#4A90E2' }]}>
+                          <Feather name="coffee" size={20} color="#fff" />
                         </View>
                         <Text style={styles.challengeTitle}>Restaurant Meals</Text>
                       </View>
@@ -193,10 +193,10 @@ export default function OnboardingScreen({ navigation, onComplete }) {
                       </Text>
                     </View>
 
-                    <View style={styles.challengeCard}>
+                    <View style={[styles.challengeCard, { backgroundColor: '#F0FFF0' }]}>
                       <View style={styles.challengeHeader}>
-                        <View style={styles.challengeIconContainer}>
-                          <Feather name="package" size={20} color="#FF6B35" />
+                        <View style={[styles.challengeIconContainer, { backgroundColor: '#50C878' }]}>
+                          <Feather name="package" size={20} color="#fff" />
                         </View>
                         <Text style={styles.challengeTitle}>Packaged Foods</Text>
                       </View>
@@ -205,10 +205,10 @@ export default function OnboardingScreen({ navigation, onComplete }) {
                       </Text>
                     </View>
 
-                    <View style={styles.challengeCard}>
+                    <View style={[styles.challengeCard, { backgroundColor: '#FFF0F0' }]}>
                       <View style={styles.challengeHeader}>
-                        <View style={styles.challengeIconContainer}>
-                          <Feather name="alert-triangle" size={20} color="#FF6B35" />
+                        <View style={[styles.challengeIconContainer, { backgroundColor: '#FF4757' }]}>
+                          <Feather name="alert-triangle" size={20} color="#fff" />
                         </View>
                         <Text style={styles.challengeTitle}>Progress Derailed</Text>
                       </View>
@@ -427,20 +427,21 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   challengeCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 20,
     width: '100%',
     alignSelf: 'stretch',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 8,
     },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   challengeHeader: {
     flexDirection: 'row',
@@ -448,24 +449,31 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   challengeIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFF5F0',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   challengeTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: 18,
+    fontFamily: 'Inter_700Bold',
     color: '#1A1A1A',
     flex: 1,
   },
   challengeDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: '#666',
-    lineHeight: 20,
+    fontSize: 15,
+    fontFamily: 'Inter_500Medium',
+    color: '#4A4A4A',
+    lineHeight: 22,
   },
 });
