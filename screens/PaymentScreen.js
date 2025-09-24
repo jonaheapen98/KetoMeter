@@ -16,6 +16,12 @@ export default function PaymentScreen({ navigation, onComplete }) {
 
   const handlePlanSelect = (plan) => {
     setSelectedPlan(plan);
+    // Auto-update toggle based on plan selection
+    if (plan === 'trial') {
+      setFreeTrialEnabled(true);
+    } else if (plan === 'yearly') {
+      setFreeTrialEnabled(false);
+    }
   };
 
   const handleToggleTrial = () => {
