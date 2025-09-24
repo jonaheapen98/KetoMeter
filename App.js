@@ -15,6 +15,8 @@ import ImagePreviewScreen from './screens/ImagePreviewScreen';
 import MenuCameraScreen from './screens/MenuCameraScreen';
 import MenuImagePreviewScreen from './screens/MenuImagePreviewScreen';
 import MenuReportScreen from './screens/MenuReportScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import InfoScreen from './screens/InfoScreen';
 import { initDatabase } from './lib/database';
 
 // Keep the splash screen visible while we fetch resources
@@ -95,6 +97,8 @@ export default function App() {
               gestureEnabled: false,
             }}
           />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Info" component={InfoScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

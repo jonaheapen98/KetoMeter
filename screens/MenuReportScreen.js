@@ -1,21 +1,54 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { deleteAnalysis } from '../lib/database';
 
 export default function MenuReportScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const analysis = route?.params?.analysis;
+  const analysisId = route?.params?.analysisId;
+  const fromHistory = route?.params?.fromHistory;
   const [expandedCards, setExpandedCards] = useState({});
 
   const handleClose = () => {
     // Check if we came from history
-    if (route?.params?.fromHistory) {
+    if (fromHistory) {
       navigation.goBack();
     } else {
       // Navigate back to the main tabs
       navigation.navigate('MainTabs');
     }
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Analysis',
+      'Are you sure you want to delete this analysis? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (analysisId) {
+                await deleteAnalysis(analysisId);
+                console.log('Analysis deleted successfully');
+                // Navigate back to history
+                navigation.goBack();
+              }
+            } catch (error) {
+              console.error('Error deleting analysis:', error);
+              Alert.alert('Error', 'Failed to delete analysis. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const toggleCard = (sectionIndex, itemIndex) => {
@@ -68,6 +101,18 @@ export default function MenuReportScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
+      {/* Delete Button (only when from history) */}
+      {fromHistory && (
+        <TouchableOpacity 
+          style={[styles.deleteButton, { top: insets.top + 20 }]}
+          onPress={handleDelete}
+        >
+          <View style={styles.deleteButtonContainer}>
+            <Feather name="trash-2" size={20} color="#F44336" />
+          </View>
+        </TouchableOpacity>
+      )}
+      
       {/* Close Button */}
       <TouchableOpacity 
         style={[styles.closeButton, { top: insets.top + 20 }]}
@@ -116,11 +161,15 @@ export default function MenuReportScreen({ navigation, route }) {
             {section.items?.map((item, itemIndex) => {
               const cardId = `${sectionIndex}-${itemIndex}`;
               const isExpanded = expandedCards[cardId];
+              const isLastItem = itemIndex === section.items.length - 1;
               
               return (
                 <TouchableOpacity 
                   key={itemIndex} 
-                  style={styles.itemCard}
+                  style={[
+                    styles.itemCard,
+                    isLastItem && { marginBottom: 0 }
+                  ]}
                   onPress={() => toggleCard(sectionIndex, itemIndex)}
                   activeOpacity={0.7}
                 >
@@ -215,7 +264,30 @@ const styles = StyleSheet.create({
     right: 24,
     zIndex: 10,
   },
+  deleteButton: {
+    position: 'absolute',
+    left: 24,
+    zIndex: 10,
+  },
   closeButtonContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  deleteButtonContainer: {
     width: 44,
     height: 44,
     borderRadius: 22,

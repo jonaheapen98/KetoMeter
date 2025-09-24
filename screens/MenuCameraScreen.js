@@ -42,18 +42,44 @@ export default function MenuCameraScreen({ navigation }) {
       return;
     }
 
-    const remainingSlots = 3 - capturedImages.length;
-    
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsMultipleSelection: true,
-      selectionLimit: remainingSlots,
-      quality: 0.8,
-      base64: false,
-    });
+    try {
+      // Request gallery permission first
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Gallery permission status:', status);
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please grant photo library access to select images for analysis.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Settings', onPress: () => ImagePicker.requestMediaLibraryPermissionsAsync() }
+          ]
+        );
+        return;
+      }
 
-    if (!result.canceled) {
-      setCapturedImages(prev => [...prev, ...result.assets]);
+      const remainingSlots = 3 - capturedImages.length;
+      
+      console.log('Opening gallery with remaining slots:', remainingSlots);
+      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsMultipleSelection: true,
+        selectionLimit: remainingSlots,
+        quality: 0.8,
+        base64: false,
+      });
+
+      console.log('Gallery result:', result);
+
+      if (!result.canceled && result.assets) {
+        console.log('Adding new images:', result.assets);
+        setCapturedImages(prev => [...prev, ...result.assets]);
+      }
+    } catch (error) {
+      console.error('Gallery error:', error);
+      Alert.alert('Error', 'Failed to open gallery. Please try again.');
     }
   };
 

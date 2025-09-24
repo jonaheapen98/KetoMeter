@@ -4,7 +4,6 @@ import { Feather } from '@expo/vector-icons';
 
 import IdentifyStack from './IdentifyStack';
 import HistoryScreen from '../screens/HistoryScreen';
-import LearnScreen from '../screens/LearnScreen';
 import CustomTabBar from './CustomTabBar';
 
 const Tab = createBottomTabNavigator();
@@ -21,8 +20,6 @@ export default function BottomTabNavigator() {
             iconName = 'maximize';
           } else if (route.name === 'History') {
             iconName = 'list';
-          } else if (route.name === 'Learn') {
-            iconName = 'book-open';
           }
 
           return <Feather name={iconName} size={20} color={color} />;
@@ -64,11 +61,6 @@ export default function BottomTabNavigator() {
         name="History" 
         component={HistoryScreen}
         options={{ headerShown: false }}
-      />
-      <Tab.Screen 
-        name="Learn" 
-        component={LearnScreen}
-        options={{ title: 'Learn' }}
       />
     </Tab.Navigator>
   );

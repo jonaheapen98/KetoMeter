@@ -1,15 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { deleteAnalysis } from '../lib/database';
 
 // Helper functions for dynamic colors based on keto score
 const getKetoScoreColor = (score) => {
   if (score >= 80) return '#2E7D32'; // Dark green - Excellent keto
-  if (score >= 60) return '#4CAF50'; // Green - Good keto
-  if (score >= 40) return '#FF9800'; // Orange - Moderate keto
-  if (score >= 20) return '#FF5722'; // Red-orange - Poor keto
-  return '#F44336'; // Red - Anti-keto
+  if (score >= 60) return '#FF9800'; // Orange - Moderate keto (was green, now more realistic)
+  if (score >= 40) return '#FF5722'; // Red-orange - Poor keto
+  if (score >= 20) return '#F44336'; // Red - Anti-keto
+  return '#D32F2F'; // Dark red - Very anti-keto
 };
 
 const getProgressBarColor = (score) => {
@@ -19,10 +20,12 @@ const getProgressBarColor = (score) => {
 export default function ReportScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
   const analysis = route?.params?.analysis;
+  const analysisId = route?.params?.analysisId;
+  const fromHistory = route?.params?.fromHistory;
 
   const handleClose = () => {
     // Check if we came from history
-    if (route?.params?.fromHistory) {
+    if (fromHistory) {
       navigation.goBack();
     } else {
       // Navigate back to the main tabs
@@ -30,9 +33,52 @@ export default function ReportScreen({ navigation, route }) {
     }
   };
 
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Analysis',
+      'Are you sure you want to delete this analysis? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (analysisId) {
+                await deleteAnalysis(analysisId);
+                console.log('Analysis deleted successfully');
+                // Navigate back to history
+                navigation.goBack();
+              }
+            } catch (error) {
+              console.error('Error deleting analysis:', error);
+              Alert.alert('Error', 'Failed to delete analysis. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {/* Floating Close Button */}
+      {/* Floating Buttons */}
+      {/* Delete Button (only when from history) */}
+      {fromHistory && (
+        <TouchableOpacity 
+          style={[styles.floatingDeleteButton, { top: insets.top + 20 }]}
+          onPress={handleDelete}
+        >
+          <View style={styles.deleteButtonContainer}>
+            <Feather name="trash-2" size={20} color="#F44336" />
+          </View>
+        </TouchableOpacity>
+      )}
+      
+      {/* Close Button */}
       <TouchableOpacity 
         style={[styles.floatingCloseButton, { top: insets.top + 20 }]}
         onPress={handleClose}
@@ -210,7 +256,10 @@ export default function ReportScreen({ navigation, route }) {
             <Text style={styles.sectionTitle}>Health Insights</Text>
             <View style={styles.healthCard}>
               {analysis.healthNotes.slice(0, 3).map((note, index) => (
-                <View key={index} style={styles.healthInsight}>
+                <View key={index} style={[
+                  styles.healthInsight,
+                  index === analysis.healthNotes.slice(0, 3).length - 1 && { marginBottom: 0 }
+                ]}>
                   <View style={styles.healthBullet} />
                   <Text style={styles.healthInsightText}>{note}</Text>
                 </View>
@@ -225,7 +274,10 @@ export default function ReportScreen({ navigation, route }) {
             <Text style={styles.sectionTitle}>Serving & Swap Advice</Text>
             <View style={styles.adviceCard}>
               {analysis.servingAdvice.map((advice, index) => (
-                <View key={index} style={styles.adviceItem}>
+                <View key={index} style={[
+                  styles.adviceItem,
+                  index === analysis.servingAdvice.length - 1 && { marginBottom: 0 }
+                ]}>
                   <View style={styles.adviceContent}>
                     <Text style={styles.adviceText}>{advice.text}</Text>
                     {advice.impact && (
@@ -253,7 +305,28 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1000,
   },
+  floatingDeleteButton: {
+    position: 'absolute',
+    left: 20,
+    zIndex: 1000,
+  },
   closeButtonContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  deleteButtonContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,

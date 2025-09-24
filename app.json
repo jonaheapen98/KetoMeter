@@ -1,29 +1,58 @@
 {
   "expo": {
     "name": "KetoMeter",
-    "slug": "KetoMeter",
+    "slug": "ketometer",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.prtcl10.ketometer",
+      "buildNumber": "2",
+      "entitlements": {
+        "com.apple.developer.in-app-payments": ["merchant.com.prtcl10.ketometer"]
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "KetoMeter uses your camera to capture photos of food items and menus for AI-powered keto analysis. This helps provide accurate nutritional insights and keto compatibility scores.",
+        "NSPhotoLibraryUsageDescription": "KetoMeter accesses your photo library to let you select existing food photos for keto analysis. This allows you to analyze meals you've already photographed.",
+        "NSMicrophoneUsageDescription": "KetoMeter may access your microphone for voice input when describing food items for analysis.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.prtcl10.ketometer",
+      "versionCode": 2,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b160d70a-9e9b-4b76-a643-76975bcfd60b"
+      }
+    },
+    "owner": "prtcl10"
   }
 }

@@ -10,14 +10,20 @@ export default function IdentifyScreen({ navigation }) {
     <View style={styles.container}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity style={styles.headerIcon}>
+        <TouchableOpacity 
+          style={styles.headerIcon}
+          onPress={() => navigation.getParent()?.navigate('Settings')}
+        >
           <Feather name="settings" size={24} color="#666" />
         </TouchableOpacity>
         <View style={styles.headerTitle}>
           <Text style={styles.headerTitleBold}>keto</Text>
           <Text style={styles.headerTitleLight}>meter</Text>
         </View>
-        <TouchableOpacity style={styles.headerIcon}>
+        <TouchableOpacity 
+          style={styles.headerIcon}
+          onPress={() => navigation.getParent()?.navigate('Info')}
+        >
           <Feather name="info" size={24} color="#666" />
         </TouchableOpacity>
       </View>

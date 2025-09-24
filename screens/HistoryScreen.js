@@ -17,6 +17,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 
 const { width: screenWidth } = Dimensions.get('window');
+
+// Helper function for dynamic colors based on keto score (same as ReportScreen)
+const getKetoScoreColor = (score) => {
+  if (score >= 80) return '#2E7D32'; // Dark green - Excellent keto
+  if (score >= 60) return '#FF9800'; // Orange - Moderate keto
+  if (score >= 40) return '#FF5722'; // Red-orange - Poor keto
+  if (score >= 20) return '#F44336'; // Red - Anti-keto
+  return '#D32F2F'; // Dark red - Very anti-keto
+};
+
 import { 
   getAllAnalysisHistory, 
   deleteAnalysis, 
@@ -59,6 +69,7 @@ export default function HistoryScreen({ navigation }) {
     const reportScreen = item.analysisType === 'menu' ? 'MenuReport' : 'Report';
     navigation.navigate(reportScreen, { 
       analysis: item.analysisResult,
+      analysisId: item.id,
       fromHistory: true 
     });
   };
@@ -137,7 +148,7 @@ export default function HistoryScreen({ navigation }) {
             
             <View style={styles.timestampRow}>
               {displayScore !== null && (
-                <View style={[styles.scoreBadge, { backgroundColor: typeInfo.color }]}>
+                <View style={[styles.scoreBadge, { backgroundColor: getKetoScoreColor(displayScore) }]}>
                   <Text style={styles.scoreText}>{displayScore}/100</Text>
                 </View>
               )}

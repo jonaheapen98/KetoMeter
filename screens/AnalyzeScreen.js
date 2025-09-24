@@ -7,6 +7,8 @@ import { saveAnalysis } from '../lib/database';
 export default function AnalyzeScreen({ navigation, route }) {
   const [progress, setProgress] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [slowProgressInterval, setSlowProgressInterval] = useState(null);
   const insets = useSafeAreaInsets();
   
   // Check if we have images or just text analysis
@@ -18,14 +20,91 @@ export default function AnalyzeScreen({ navigation, route }) {
   const isMenuAnalysis = route?.name === 'MenuAnalyze';
 
   useEffect(() => {
+    // Start progress animation immediately
+    startProgressAnimation();
+    
+    // Start the actual analysis
     if (images && images.length > 0) {
-      // Image analysis flow
       performImageAnalysis();
     } else if (foodDescription) {
-      // Text analysis flow (existing)
       performTextAnalysis();
     }
   }, []);
+
+  const startProgressAnimation = () => {
+    // Animate from 0 to 78% over 3-4 seconds
+    const fastInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 78) {
+          clearInterval(fastInterval);
+          // Start slow progress from 78% onwards
+          startSlowProgress();
+          return 78;
+        }
+        return prev + 1; // Increase by 1% every 50ms
+      });
+    }, 50);
+  };
+
+  const startSlowProgress = () => {
+    // Increment by 1% every 3 seconds from 78% onwards
+    const slowInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 99) {
+          clearInterval(slowInterval);
+          return 99; // Stop at 99% until response comes
+        }
+        return prev + 1;
+      });
+    }, 3000); // 3 seconds
+    
+    setSlowProgressInterval(slowInterval);
+  };
+
+  const completeAnalysis = async (analysis) => {
+    // Clear the slow progress interval
+    if (slowProgressInterval) {
+      clearInterval(slowProgressInterval);
+      setSlowProgressInterval(null);
+    }
+    
+    try {
+      // Save analysis to database
+      const analysisType = isMenuAnalysis ? 'menu' : 'image';
+      const inputData = images ? {
+        images: images,
+        additionalDescription: additionalDescription
+      } : {
+        foodDescription: foodDescription
+      };
+      
+      await saveAnalysis(analysisType, inputData, analysis);
+      console.log('Analysis saved to database');
+    } catch (error) {
+      console.error('Error saving analysis to database:', error);
+      // Continue to report screen even if saving fails
+    }
+    
+    // Quickly animate to 100%
+    animateTo100(() => {
+      const reportScreen = isMenuAnalysis ? 'MenuReport' : 'Report';
+      navigation.navigate(reportScreen, { analysis });
+    });
+  };
+
+  const animateTo100 = (onComplete) => {
+    // Quickly count up to 100% in 0.5 seconds
+    const quickInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(quickInterval);
+          setTimeout(onComplete, 300); // Small delay before navigation
+          return 100;
+        }
+        return prev + 1; // Increase by 1% every 50ms for quick animation
+      });
+    }, 50);
+  };
 
   const performImageAnalysis = async () => {
     setIsAnalyzing(true);
@@ -67,26 +146,8 @@ export default function AnalyzeScreen({ navigation, route }) {
       const content = additionalDescription || 'Please analyze the food images provided';
       const analysis = await analyzeFood(isMenuAnalysis ? 'menu' : 'image', content, imageData);
       
-      // Simulate progress while analysis is happening
-      simulateProgress(async () => {
-        try {
-          // Save analysis to database
-          const analysisType = isMenuAnalysis ? 'menu' : 'image';
-          const inputData = {
-            images: images,
-            additionalDescription: additionalDescription
-          };
-          
-          await saveAnalysis(analysisType, inputData, analysis);
-          console.log('Analysis saved to database');
-        } catch (error) {
-          console.error('Error saving analysis to database:', error);
-          // Continue to report screen even if saving fails
-        }
-        
-        const reportScreen = isMenuAnalysis ? 'MenuReport' : 'Report';
-        navigation.navigate(reportScreen, { analysis });
-      });
+      // Complete the analysis (jump to 100% and navigate)
+      completeAnalysis(analysis);
       
     } catch (error) {
       console.error('Image analysis error:', error);
@@ -104,23 +165,8 @@ export default function AnalyzeScreen({ navigation, route }) {
       // Call the edge function for text analysis
       const analysis = await analyzeFood('text', foodDescription.trim());
       
-      // Simulate progress while analysis is happening
-      simulateProgress(async () => {
-        try {
-          // Save analysis to database
-          const inputData = {
-            foodDescription: foodDescription
-          };
-          
-          await saveAnalysis('text', inputData, analysis);
-          console.log('Analysis saved to database');
-        } catch (error) {
-          console.error('Error saving analysis to database:', error);
-          // Continue to report screen even if saving fails
-        }
-        
-        navigation.navigate('Report', { analysis });
-      });
+      // Complete the analysis (jump to 100% and navigate)
+      completeAnalysis(analysis);
       
     } catch (error) {
       console.error('Text analysis error:', error);
@@ -131,20 +177,6 @@ export default function AnalyzeScreen({ navigation, route }) {
     }
   };
 
-  const simulateProgress = (onComplete) => {
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            onComplete();
-          }, 500);
-          return 100;
-        }
-        return prev + 2; // Increase by 2% every 60ms
-      });
-    }, 60);
-  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

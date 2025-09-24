@@ -42,23 +42,49 @@ export default function CameraScreen({ navigation }) {
       return;
     }
 
-    const remainingSlots = 3 - capturedImages.length;
-    
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsMultipleSelection: true,
-      selectionLimit: remainingSlots,
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      const newImages = result.assets.map(asset => ({
-        uri: asset.uri,
-        width: asset.width,
-        height: asset.height,
-      }));
+    try {
+      // Request gallery permission first
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Gallery permission status:', status);
       
-      setCapturedImages(prev => [...prev, ...newImages]);
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please grant photo library access to select images for analysis.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Settings', onPress: () => ImagePicker.requestMediaLibraryPermissionsAsync() }
+          ]
+        );
+        return;
+      }
+
+      const remainingSlots = 3 - capturedImages.length;
+      
+      console.log('Opening gallery with remaining slots:', remainingSlots);
+      
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsMultipleSelection: true,
+        selectionLimit: remainingSlots,
+        quality: 0.8,
+      });
+
+      console.log('Gallery result:', result);
+
+      if (!result.canceled && result.assets) {
+        const newImages = result.assets.map(asset => ({
+          uri: asset.uri,
+          width: asset.width,
+          height: asset.height,
+        }));
+        
+        console.log('Adding new images:', newImages);
+        setCapturedImages(prev => [...prev, ...newImages]);
+      }
+    } catch (error) {
+      console.error('Gallery error:', error);
+      Alert.alert('Error', 'Failed to open gallery. Please try again.');
     }
   };
 
