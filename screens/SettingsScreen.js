@@ -4,7 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { resetOnboarding, clearAllSettings } from '../lib/database';
 
-export default function SettingsScreen({ navigation }) {
+export default function SettingsScreen({ navigation, onOnboardingReset }) {
   const insets = useSafeAreaInsets();
 
   const handleLinkPress = async (url, title) => {
@@ -39,11 +39,10 @@ export default function SettingsScreen({ navigation }) {
                   { 
                     text: 'OK', 
                     onPress: () => {
-                      // Navigate to onboarding using parent navigator
-                      navigation.getParent()?.reset({
-                        index: 0,
-                        routes: [{ name: 'Onboarding' }],
-                      });
+                      // Trigger onboarding check in MainApp
+                      if (onOnboardingReset) {
+                        onOnboardingReset();
+                      }
                     }
                   }
                 ]
@@ -76,11 +75,10 @@ export default function SettingsScreen({ navigation }) {
                   { 
                     text: 'OK', 
                     onPress: () => {
-                      // Navigate to onboarding using parent navigator
-                      navigation.getParent()?.reset({
-                        index: 0,
-                        routes: [{ name: 'Onboarding' }],
-                      });
+                      // Trigger onboarding check in MainApp
+                      if (onOnboardingReset) {
+                        onOnboardingReset();
+                      }
                     }
                   }
                 ]

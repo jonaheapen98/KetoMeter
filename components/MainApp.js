@@ -20,10 +20,17 @@ const Stack = createStackNavigator();
 export default function MainApp() {
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     checkOnboardingStatus();
-  }, []);
+  }, [refreshKey]);
+
+  // Function to trigger a re-check of onboarding status
+  const triggerOnboardingCheck = () => {
+    console.log('Triggering onboarding check...');
+    setRefreshKey(prev => prev + 1);
+  };
 
   const checkOnboardingStatus = async () => {
     try {
@@ -100,9 +107,10 @@ export default function MainApp() {
           />
           <Stack.Screen 
             name="Settings" 
-            component={SettingsScreen}
             options={{ gestureEnabled: false }}
-          />
+          >
+            {(props) => <SettingsScreen {...props} onOnboardingReset={triggerOnboardingCheck} />}
+          </Stack.Screen>
           <Stack.Screen 
             name="Info" 
             component={InfoScreen}
