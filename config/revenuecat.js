@@ -4,7 +4,7 @@
 export const REVENUECAT_CONFIG = {
   // Get these from RevenueCat Dashboard > Project Settings > API Keys
   ios: {
-    apiKey: 'appl_xxxxxxxxxxxxxxxxxxxxxxxx', // Replace with your iOS API key
+    apiKey: 'appl_pTGTlCFTvvemzBAwfIOUNeYUaNc', // iOS API key
     bundleId: 'com.prtcl10.ketometer', // Your app's bundle ID
   },
   android: {
