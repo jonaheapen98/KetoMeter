@@ -13,6 +13,9 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
   const [additionalDescription, setAdditionalDescription] = useState('');
   const scrollViewRef = React.useRef();
 
+  // Safety check for images
+  const safeImages = Array.isArray(images) ? images.filter(img => img && img.uri) : [];
+
   const handleScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / screenWidth);
@@ -25,11 +28,11 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
   };
 
   const handleAnalyze = () => {
-    if (!images || !Array.isArray(images) || images.length === 0) {
+    if (!safeImages || safeImages.length === 0) {
       Alert.alert('No Images', 'Please go back and capture or select images to analyze.');
       return;
     }
-    navigation.navigate('MenuAnalyze', { images, additionalDescription });
+    navigation.navigate('MenuAnalyze', { images: safeImages, additionalDescription });
   };
 
   return (
@@ -62,10 +65,10 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
           scrollEventThrottle={16}
           style={styles.imageScrollView}
         >
-          {images && Array.isArray(images) && images.map((image, index) => (
+          {safeImages.map((image, index) => (
             <View key={index} style={styles.imageSlide}>
               <Image
-                source={{ uri: image?.uri || '' }}
+                source={{ uri: image.uri }}
                 style={styles.fullImage}
                 contentFit="contain"
               />
@@ -74,14 +77,14 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
         </ScrollView>
         <View style={styles.imageCounterContainer}>
           <Text style={styles.imageCounterText}>
-            {String((currentImageIndex + 1) || 1)}/{String((images?.length) || 0)}
+            {String((currentImageIndex + 1) || 1)}/{String(safeImages.length || 0)}
           </Text>
         </View>
       </View>
 
       {/* Thumbnails */}
       <View style={styles.thumbnailContainer}>
-        {images && Array.isArray(images) && images.map((image, index) => (
+        {safeImages.map((image, index) => (
           <TouchableOpacity 
             key={index} 
             onPress={() => goToImage(index)}
@@ -91,7 +94,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
             ]}
           >
             <Image
-              source={{ uri: String(image?.uri || '') }}
+              source={{ uri: image.uri }}
               style={styles.thumbnailImage}
               contentFit="cover"
             />
