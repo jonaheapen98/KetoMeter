@@ -106,9 +106,23 @@ export default function OnboardingScreen({ navigation }) {
   const renderSlide = (item, index) => (
     <View key={item.id} style={[styles.slide, { width }]}>
       <View style={styles.content}>
-        {/* Icon */}
-        <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
-          <Feather name={item.icon} size={56} color="#fff" />
+        {/* Overlapping Icons Row */}
+        <View style={styles.iconsRow}>
+          {onboardingData.map((dataItem, iconIndex) => (
+            <View
+              key={dataItem.id}
+              style={[
+                styles.overlappingIcon,
+                {
+                  backgroundColor: dataItem.color,
+                  zIndex: onboardingData.length - iconIndex,
+                  marginLeft: iconIndex > 0 ? -20 : 0,
+                }
+              ]}
+            >
+              <Feather name={dataItem.icon} size={24} color="#fff" />
+            </View>
+          ))}
         </View>
 
         {/* Title */}
@@ -189,7 +203,7 @@ export default function OnboardingScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Dots Indicator */}
+        {/* Dots Indicator - Moved to center */}
         <View style={styles.dotsContainer}>
           {onboardingData.map((_, index) => (
             <View
@@ -250,6 +264,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     maxWidth: 320,
   },
+  iconsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 40,
+  },
+  overlappingIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
   iconContainer: {
     width: 120,
     height: 120,
@@ -294,7 +329,7 @@ const styles = StyleSheet.create({
   navigationButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
   },
   previousButton: {
     flexDirection: 'row',
@@ -342,6 +377,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 20,
   },
   dot: {
     height: 8,
