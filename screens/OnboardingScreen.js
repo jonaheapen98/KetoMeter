@@ -183,7 +183,7 @@ export default function OnboardingScreen({ navigation }) {
         <TouchableOpacity 
           style={[
             styles.fullWidthButton,
-            { backgroundColor: onboardingData[currentIndex]?.color || '#4ECDC4' }
+            { backgroundColor: '#000000' }
           ]}
           onPress={handleNext}
         >
