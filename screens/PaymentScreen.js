@@ -182,7 +182,10 @@ export default function PaymentScreen({ navigation, onComplete }) {
             <Text style={styles.footerLink}>Restore</Text>
           </TouchableOpacity>
           <TouchableOpacity>
-            <Text style={styles.footerLink}>Terms of Use & Privacy Policy</Text>
+            <Text style={styles.footerLink}>Terms of Use</Text>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Text style={styles.footerLink}>Privacy Policy</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -277,12 +280,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     marginBottom: 10,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#E0E0E0',
   },
   planCardSelected: {
     backgroundColor: '#F0FDFA',
     borderColor: '#4ECDC4',
+    borderWidth: 2,
   },
   planContent: {
     flexDirection: 'row',
@@ -425,7 +429,7 @@ const styles = StyleSheet.create({
   },
   footerLinks: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
   },
   footerLink: {
     fontSize: 14,
