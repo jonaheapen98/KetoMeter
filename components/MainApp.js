@@ -60,14 +60,22 @@ export default function MainApp() {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {showOnboarding ? (
-        <Stack.Screen name="Onboarding">
-          {(props) => <OnboardingScreen {...props} onComplete={triggerOnboardingCheck} />}
-        </Stack.Screen>
-      ) : (
-        <>
-          <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {showOnboarding ? (
+            <>
+              <Stack.Screen name="Onboarding">
+                {(props) => <OnboardingScreen {...props} onComplete={triggerOnboardingCheck} />}
+              </Stack.Screen>
+              <Stack.Screen 
+                name="Payment" 
+                options={{ gestureEnabled: false }}
+              >
+                {(props) => <PaymentScreen {...props} onComplete={triggerOnboardingCheck} />}
+              </Stack.Screen>
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
           <Stack.Screen 
             name="TypeFood" 
             component={TypeFoodScreen}

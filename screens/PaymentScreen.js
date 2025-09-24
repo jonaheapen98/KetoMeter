@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function PaymentScreen({ navigation }) {
+export default function PaymentScreen({ navigation, onComplete }) {
   const [selectedPlan, setSelectedPlan] = useState('trial');
   const [freeTrialEnabled, setFreeTrialEnabled] = useState(true);
   const insets = useSafeAreaInsets();
 
   const handleClose = () => {
+    // If we're in onboarding flow, go back to onboarding
+    // If we're in main app, go back to main app
     navigation.goBack();
   };
 
@@ -29,8 +31,11 @@ export default function PaymentScreen({ navigation }) {
     // Handle subscription logic here
     console.log('Selected plan:', selectedPlan);
     console.log('Free trial enabled:', freeTrialEnabled);
-    // Navigate to main app or show success
-    navigation.goBack();
+    
+    // Trigger completion to switch to main app
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   return (
