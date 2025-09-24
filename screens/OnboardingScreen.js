@@ -187,7 +187,7 @@ export default function OnboardingScreen({ navigation, onComplete }) {
 
                     <View style={styles.challengeCard}>
                       <View style={styles.challengeIconContainer}>
-                        <Feather name="utensils" size={24} color="#FF6B35" />
+                        <Feather name="coffee" size={24} color="#FF6B35" />
                       </View>
                       <Text style={styles.challengeTitle}>Restaurant Meals</Text>
                       <Text style={styles.challengeDescription}>
@@ -316,9 +316,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   specialContent: {
-    alignItems: 'center',
+    alignItems: 'stretch',
     justifyContent: 'flex-start',
-    maxWidth: 320,
+    width: '100%',
     flex: 1,
     paddingTop: 20,
   },
@@ -424,6 +424,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 24,
     paddingBottom: 20,
+    alignSelf: 'stretch',
   },
   challengeCard: {
     backgroundColor: '#F8F9FA',
@@ -432,6 +433,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
+    alignSelf: 'stretch',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
