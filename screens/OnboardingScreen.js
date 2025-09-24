@@ -161,11 +161,11 @@ export default function OnboardingScreen({ navigation, onComplete }) {
           <ScrollView
             key={item.id}
             style={[styles.slide, { width }]}
-            contentContainerStyle={styles.slideContent}
+            contentContainerStyle={item.isSpecialPage ? styles.specialSlideContent : styles.slideContent}
             showsVerticalScrollIndicator={false}
             bounces={false}
           >
-            <View style={styles.content}>
+            <View style={item.isSpecialPage ? styles.specialContent : styles.content}>
               {item.isSpecialPage ? (
                 // Special layout for page 2
                 <>
@@ -302,11 +302,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 20,
   },
+  specialSlideContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingVertical: 20,
+  },
   content: {
     alignItems: 'center',
     justifyContent: 'center',
     maxWidth: 320,
     flex: 1,
+  },
+  specialContent: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    maxWidth: 320,
+    flex: 1,
+    paddingTop: 20,
   },
   iconsRow: {
     flexDirection: 'row',
@@ -408,7 +422,8 @@ const styles = StyleSheet.create({
   },
   challengeCards: {
     width: '100%',
-    marginTop: 32,
+    marginTop: 24,
+    paddingBottom: 20,
   },
   challengeCard: {
     backgroundColor: '#F8F9FA',
