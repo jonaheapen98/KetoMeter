@@ -8,61 +8,29 @@ const { width: screenWidth } = Dimensions.get('window');
 
 export default function MenuImagePreviewScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  
-  // More robust route params handling
-  const routeParams = route?.params || {};
-  const images = routeParams.images || [];
-  
+  const { images = [] } = route?.params || {};
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [additionalDescription, setAdditionalDescription] = useState('');
   const scrollViewRef = React.useRef();
 
-  // Safety check for images with more validation
-  const safeImages = React.useMemo(() => {
-    if (!Array.isArray(images)) return [];
-    return images.filter(img => {
-      return img && 
-             typeof img === 'object' && 
-             img.uri && 
-             typeof img.uri === 'string' && 
-             img.uri.trim() !== '';
-    });
-  }, [images]);
-
   const handleScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(contentOffsetX / screenWidth);
-    const safeIndex = Math.min(Math.max(0, index), safeImages.length - 1);
-    setCurrentImageIndex(safeIndex);
+    setCurrentImageIndex(index);
   };
 
   const goToImage = (index) => {
-    const safeIndex = Math.min(Math.max(0, index), safeImages.length - 1);
-    setCurrentImageIndex(safeIndex);
-    if (scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ x: safeIndex * screenWidth, animated: true });
-    }
+    setCurrentImageIndex(index);
+    scrollViewRef.current.scrollTo({ x: index * screenWidth, animated: true });
   };
 
   const handleAnalyze = () => {
-    if (!safeImages || safeImages.length === 0) {
+    if (!images || !Array.isArray(images) || images.length === 0) {
       Alert.alert('No Images', 'Please go back and capture or select images to analyze.');
       return;
     }
-    navigation.navigate('MenuAnalyze', { images: safeImages, additionalDescription });
+    navigation.navigate('MenuAnalyze', { images, additionalDescription });
   };
-
-  // Don't render if no safe images
-  if (safeImages.length === 0) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.errorText}>No valid images found. Please go back and try again.</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   return (
     <KeyboardAvoidingView 
@@ -94,10 +62,10 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
           scrollEventThrottle={16}
           style={styles.imageScrollView}
         >
-          {safeImages.map((image, index) => (
+          {images && Array.isArray(images) && images.map((image, index) => (
             <View key={index} style={styles.imageSlide}>
               <Image
-                source={{ uri: image.uri }}
+                source={{ uri: image?.uri || '' }}
                 style={styles.fullImage}
                 contentFit="contain"
               />
@@ -106,14 +74,14 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
         </ScrollView>
         <View style={styles.imageCounterContainer}>
           <Text style={styles.imageCounterText}>
-            {String((currentImageIndex + 1) || 1)}/{String(safeImages.length || 0)}
+            {currentImageIndex + 1}/{images?.length || 0}
           </Text>
         </View>
       </View>
 
       {/* Thumbnails */}
       <View style={styles.thumbnailContainer}>
-        {safeImages.map((image, index) => (
+        {images && Array.isArray(images) && images.map((image, index) => (
           <TouchableOpacity 
             key={index} 
             onPress={() => goToImage(index)}
@@ -123,7 +91,7 @@ export default function MenuImagePreviewScreen({ navigation, route }) {
             ]}
           >
             <Image
-              source={{ uri: image.uri }}
+              source={{ uri: image?.uri || '' }}
               style={styles.thumbnailImage}
               contentFit="cover"
             />
@@ -282,25 +250,6 @@ const styles = StyleSheet.create({
   analyzeButtonText: {
     fontSize: 18,
     fontFamily: 'Inter_700Bold',
-    color: '#fff',
-  },
-  errorText: {
-    fontSize: 16,
-    fontFamily: 'Inter_500Medium',
-    color: '#FF4757',
-    textAlign: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 20,
-  },
-  backButton: {
-    backgroundColor: '#4ECDC4',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter_600SemiBold',
     color: '#fff',
   },
 });
