@@ -46,14 +46,10 @@ export default function PaymentScreen({ navigation, onComplete }) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft} />
-        <View style={styles.headerCenter} />
-        <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-          <Feather name="x" size={24} color="#8E8E93" />
-        </TouchableOpacity>
-      </View>
+      {/* Fixed Close Button */}
+      <TouchableOpacity style={[styles.closeButton, { top: insets.top + 16 }]} onPress={handleClose}>
+        <Feather name="x" size={24} color="#8E8E93" />
+      </TouchableOpacity>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Main Visual */}
@@ -198,25 +194,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  headerCenter: {
-    flex: 1,
-  },
   closeButton: {
+    position: 'absolute',
+    right: 20,
     width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
   content: {
     flex: 1,
