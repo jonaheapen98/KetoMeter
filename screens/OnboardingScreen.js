@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { setOnboardingComplete } from '../lib/database';
@@ -106,23 +106,9 @@ export default function OnboardingScreen({ navigation }) {
   const renderSlide = (item, index) => (
     <View key={item.id} style={[styles.slide, { width }]}>
       <View style={styles.content}>
-        {/* Overlapping Icons Row */}
-        <View style={styles.iconsRow}>
-          {onboardingData.map((dataItem, iconIndex) => (
-            <View
-              key={dataItem.id}
-              style={[
-                styles.overlappingIcon,
-                {
-                  backgroundColor: dataItem.color,
-                  zIndex: onboardingData.length - iconIndex,
-                  marginLeft: iconIndex > 0 ? -20 : 0,
-                }
-              ]}
-            >
-              <Feather name={dataItem.icon} size={24} color="#fff" />
-            </View>
-          ))}
+        {/* Single Icon for Current Page */}
+        <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
+          <Feather name={item.icon} size={56} color="#fff" />
         </View>
 
         {/* Title */}
@@ -153,9 +139,19 @@ export default function OnboardingScreen({ navigation }) {
       </View>
 
       {/* Slides */}
-      <View style={styles.slidesContainer}>
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(event) => {
+          const newIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+          setCurrentIndex(newIndex);
+        }}
+        style={styles.slidesContainer}
+      >
         {onboardingData.map((item, index) => renderSlide(item, index))}
-      </View>
+      </ScrollView>
 
       {/* Navigation */}
       <View style={[styles.navigation, { paddingBottom: insets.bottom + 20 }]}>
@@ -252,9 +248,9 @@ const styles = StyleSheet.create({
   },
   slidesContainer: {
     flex: 1,
-    flexDirection: 'row',
   },
   slide: {
+    width: width,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -262,7 +258,9 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
+    justifyContent: 'center',
     maxWidth: 320,
+    flex: 1,
   },
   iconsRow: {
     flexDirection: 'row',
