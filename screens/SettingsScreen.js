@@ -2,9 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { resetOnboarding, clearAllSettings } from '../lib/database';
 
-export default function SettingsScreen({ navigation, onOnboardingReset }) {
+export default function SettingsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
 
   const handleLinkPress = async (url, title) => {
@@ -20,77 +19,6 @@ export default function SettingsScreen({ navigation, onOnboardingReset }) {
     }
   };
 
-  const handleStartOnboarding = () => {
-    Alert.alert(
-      'Start Onboarding',
-      'This will reset your onboarding state and show the onboarding flow again. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Start Onboarding',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await resetOnboarding();
-              Alert.alert(
-                'Success',
-                'Onboarding state reset. The app will now show the onboarding flow.',
-                [
-                  { 
-                    text: 'OK', 
-                    onPress: () => {
-                      // Trigger onboarding check in MainApp
-                      if (onOnboardingReset) {
-                        onOnboardingReset();
-                      }
-                    }
-                  }
-                ]
-              );
-            } catch (error) {
-              Alert.alert('Error', 'Failed to reset onboarding state. Please try again.');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleClearAllSettings = () => {
-    Alert.alert(
-      'Clear All Settings',
-      'This will clear all app settings including onboarding state. This action cannot be undone. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Clear All',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await clearAllSettings();
-              Alert.alert(
-                'Success',
-                'All settings cleared. The app will now show the onboarding flow.',
-                [
-                  { 
-                    text: 'OK', 
-                    onPress: () => {
-                      // Trigger onboarding check in MainApp
-                      if (onOnboardingReset) {
-                        onOnboardingReset();
-                      }
-                    }
-                  }
-                ]
-              );
-            } catch (error) {
-              Alert.alert('Error', 'Failed to clear settings. Please try again.');
-            }
-          },
-        },
-      ]
-    );
-  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -141,38 +69,17 @@ export default function SettingsScreen({ navigation, onOnboardingReset }) {
             </View>
           </TouchableOpacity>
 
-          {/* Debug Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Debug</Text>
-          </View>
-          
           <TouchableOpacity 
             style={styles.settingItem}
-            onPress={handleStartOnboarding}
+            onPress={() => navigation.navigate('ReferralCode')}
             activeOpacity={0.7}
           >
             <View style={styles.settingItemContent}>
               <View style={styles.settingItemLeft}>
                 <View style={styles.iconContainer}>
-                  <Feather name="refresh-cw" size={20} color="#FF6B35" />
+                  <Feather name="gift" size={20} color="#4CAF50" />
                 </View>
-                <Text style={styles.settingItemTitle}>Start Onboarding</Text>
-              </View>
-              <Feather name="chevron-right" size={16} color="#8E8E93" />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.settingItem}
-            onPress={handleClearAllSettings}
-            activeOpacity={0.7}
-          >
-            <View style={styles.settingItemContent}>
-              <View style={styles.settingItemLeft}>
-                <View style={styles.iconContainer}>
-                  <Feather name="trash-2" size={20} color="#F44336" />
-                </View>
-                <Text style={styles.settingItemTitle}>Clear All Settings</Text>
+                <Text style={styles.settingItemTitle}>Use Referral Code</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#8E8E93" />
             </View>

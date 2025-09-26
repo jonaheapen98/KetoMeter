@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator, Linking } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
@@ -8,22 +8,34 @@ import {
   purchasePackage, 
   restorePurchases,
   hasActiveSubscription,
-  getSubscriptionStatus 
+  getSubscriptionStatus,
+  getCustomerInfo 
 } from '../lib/revenuecat';
 import { setPremiumStatus } from '../lib/database';
 
-export default function PaymentScreen({ navigation, onComplete, onSkip }) {
+export default function PaymentScreen({ navigation, onClose }) {
   const [selectedPlan, setSelectedPlan] = useState('trial');
   const [freeTrialEnabled, setFreeTrialEnabled] = useState(true);
   const [offerings, setOfferings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [customerInfo, setCustomerInfo] = useState(null);
+  const [isClosing, setIsClosing] = useState(false);
+  const closeTimeoutRef = useRef(null);
   const insets = useSafeAreaInsets();
 
   // Initialize RevenueCat and fetch offerings
   useEffect(() => {
     initializeApp();
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
   }, []);
 
   const initializeApp = async () => {
@@ -33,7 +45,7 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
       // Initialize RevenueCat
       const initialized = await initializeRevenueCat();
       if (!initialized) {
-        throw new Error('Failed to initialize RevenueCat');
+        throw new Error('Failed to initialize payment system');
       }
 
       // Get current customer info
@@ -49,7 +61,12 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
             {
               text: 'OK',
               onPress: () => {
-                if (onComplete) onComplete();
+                // Navigate to home if already subscribed
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigation.navigate('MainTabs');
+                }
               }
             }
           ]
@@ -72,16 +89,30 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
   };
 
   const handleClose = () => {
-    // User is skipping the payment wall
-    if (onSkip) {
-      onSkip(); // Tell MainApp that payment was skipped
-    } else {
-      // Fallback navigation
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainTabs' }],
-      });
+    if (isClosing) {
+      console.log('PaymentScreen: Already closing, ignoring button press');
+      return;
     }
+    
+    console.log('PaymentScreen: Close button pressed');
+    setIsClosing(true);
+    
+    // Clear any existing timeout
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    
+    // Add a small delay to prevent rapid button presses
+    closeTimeoutRef.current = setTimeout(() => {
+      if (onClose) {
+        console.log('PaymentScreen: Using onClose callback');
+        onClose(); // Tell MainApp to close paywall
+      } else {
+        console.log('PaymentScreen: Using navigation fallback');
+        // Fallback for when PaymentScreen is accessed from main app
+        navigation.navigate('MainTabs');
+      }
+    }, 100);
   };
 
   const handlePlanSelect = (plan) => {
@@ -104,8 +135,11 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
   };
 
   const handleSubscribe = async () => {
-    if (!offerings || !offerings.current) {
-      // In fallback mode, simulate a successful purchase
+    // Check if we're in Expo Go environment (not TestFlight/Production)
+    const isExpoGo = __DEV__ && (!offerings || !offerings.current);
+    
+    if (isExpoGo) {
+      // Only show demo mode in Expo Go development
       Alert.alert(
         'Demo Mode',
         'This is a demo version. In production, this would process your payment.',
@@ -117,7 +151,12 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
               const premiumType = selectedPlan === 'yearly' ? 'yearly' : 'weekly';
               await setPremiumStatus(true, premiumType);
               
-              if (onComplete) onComplete();
+              // Navigate to home after purchase
+              if (onClose) {
+                onClose();
+              } else {
+                navigation.navigate('MainTabs');
+              }
             }
           }
         ]
@@ -128,9 +167,26 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
     try {
       setPurchasing(true);
       
+      // If no offerings available, try to initialize RevenueCat and get offerings
+      if (!offerings || !offerings.current) {
+        console.log('No offerings available, attempting to reinitialize RevenueCat...');
+        const initialized = await initializeRevenueCat();
+        if (initialized) {
+          const freshOfferings = await getOfferings();
+          if (freshOfferings && freshOfferings.current) {
+            setOfferings(freshOfferings);
+            // Continue with the fresh offerings
+          } else {
+            throw new Error('Unable to load subscription options. Please check your internet connection and try again.');
+          }
+        } else {
+          throw new Error('Unable to initialize payment system. Please try again.');
+        }
+      }
+      
       // Find the selected package
       let packageToPurchase;
-      const availablePackages = offerings.current.availablePackages;
+      const availablePackages = (offerings?.current?.availablePackages) || [];
       
       if (selectedPlan === 'yearly') {
         // Look for yearly package
@@ -171,7 +227,12 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
             {
               text: 'Continue',
               onPress: () => {
-                if (onComplete) onComplete();
+                // Navigate to home after successful purchase
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigation.navigate('MainTabs');
+                }
               }
             }
           ]
@@ -199,14 +260,29 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
     try {
       setPurchasing(true);
       
-      if (!offerings || !offerings.current) {
-        // In fallback mode, show demo message
+      // Check if we're in Expo Go environment (not TestFlight/Production)
+      const isExpoGo = __DEV__ && (!offerings || !offerings.current);
+      
+      if (isExpoGo) {
+        // Only show demo mode in Expo Go development
         Alert.alert(
           'Demo Mode',
           'Restore purchases is not available in demo mode.',
           [{ text: 'OK' }]
         );
         return;
+      }
+      
+      // If no offerings available, try to initialize RevenueCat first
+      if (!offerings || !offerings.current) {
+        console.log('No offerings available for restore, attempting to reinitialize RevenueCat...');
+        const initialized = await initializeRevenueCat();
+        if (initialized) {
+          const freshOfferings = await getOfferings();
+          if (freshOfferings && freshOfferings.current) {
+            setOfferings(freshOfferings);
+          }
+        }
       }
       
       const result = await restorePurchases();
@@ -224,9 +300,14 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
             [
               {
                 text: 'Continue',
-                onPress: () => {
-                  if (onComplete) onComplete();
+              onPress: () => {
+                // Navigate to home after restore
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigation.navigate('MainTabs');
                 }
+              }
               }
             ]
           );
@@ -266,9 +347,10 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
   // Get pricing from RevenueCat offerings
   const getPricingInfo = () => {
     if (!offerings?.current?.availablePackages) {
+      // Fallback pricing - use USD as it's more universal for TestFlight
       return {
-        yearly: { price: '₹299.00/year', originalPrice: '₹2,999.00' },
-        weekly: { price: '₹99.00/week', trialText: 'FREE' }
+        yearly: { price: '$29/year', originalPrice: '$299.99' },
+        weekly: { price: '$4.99/week', trialText: 'FREE' }
       };
     }
 
@@ -288,17 +370,41 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
 
     return {
       yearly: {
-        price: yearlyPackage?.product.priceString || '₹299.00/year',
-        originalPrice: '₹2,999.00'
+        price: yearlyPackage?.product.priceString || '$29/year',
+        originalPrice: '$299.99'
       },
       weekly: {
-        price: weeklyPackage?.product.priceString || '₹99.00/week',
+        price: weeklyPackage?.product.priceString || '$4.99/week',
         trialText: 'FREE'
       }
     };
   };
 
   const pricing = getPricingInfo();
+
+  // Get dynamic CTA text based on selected plan
+  const getCtaText = () => {
+    if (selectedPlan === 'yearly') {
+      return 'Unlock Now';
+    } else if (selectedPlan === 'trial') {
+      return 'Try for Free';
+    }
+    return 'Subscribe';
+  };
+
+  // Handle opening external links
+  const handleLinkPress = async (url, title) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', `Cannot open ${title}`);
+      }
+    } catch (error) {
+      Alert.alert('Error', `Failed to open ${title}`);
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -436,7 +542,7 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
               <ActivityIndicator size="small" color="#fff" />
             ) : (
               <>
-                <Text style={styles.subscribeButtonText}>Try for Free</Text>
+                <Text style={styles.subscribeButtonText}>{getCtaText()}</Text>
                 <Feather name="chevron-right" size={20} color="#fff" />
               </>
             )}
@@ -447,10 +553,10 @@ export default function PaymentScreen({ navigation, onComplete, onSkip }) {
           <TouchableOpacity onPress={handleRestore} disabled={purchasing}>
             <Text style={[styles.footerLink, purchasing && styles.footerLinkDisabled]}>Restore</Text>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => handleLinkPress('https://www.prtcl10.com/ketometer/termsandconditions', 'Terms of Use')}>
             <Text style={styles.footerLink}>Terms of Use</Text>
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => handleLinkPress('https://www.prtcl10.com/ketometer/privacypolicy', 'Privacy Policy')}>
             <Text style={styles.footerLink}>Privacy Policy</Text>
           </TouchableOpacity>
         </View>

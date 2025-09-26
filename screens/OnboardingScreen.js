@@ -52,6 +52,7 @@ const onboardingData = [
 
 export default function OnboardingScreen({ navigation, onComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isCompleting, setIsCompleting] = useState(false);
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef(null);
 
@@ -74,17 +75,31 @@ export default function OnboardingScreen({ navigation, onComplete }) {
   };
 
   const handleComplete = async () => {
+    if (isCompleting) {
+      console.log('OnboardingScreen: Already completing, ignoring...');
+      return;
+    }
+    
+    console.log('OnboardingScreen: Starting completion process...');
+    setIsCompleting(true);
+    
     try {
       // Mark onboarding as complete in database
       await setOnboardingComplete();
       console.log('Onboarding completed successfully');
       
-      // Navigate to Payment screen
-      navigation.navigate('Payment');
+      // Call onComplete to trigger MainApp navigation
+      if (onComplete) {
+        console.log('OnboardingScreen: Calling onComplete callback');
+        onComplete();
+      }
     } catch (error) {
       console.error('Error completing onboarding:', error);
-      // Still navigate to Payment even if database update fails
-      navigation.navigate('Payment');
+      // Still call onComplete even if database update fails
+      if (onComplete) {
+        console.log('OnboardingScreen: Calling onComplete callback (after error)');
+        onComplete();
+      }
     }
   };
 
@@ -240,9 +255,11 @@ export default function OnboardingScreen({ navigation, onComplete }) {
         <TouchableOpacity 
           style={[
             styles.fullWidthButton,
-            { backgroundColor: '#000000' }
+            { backgroundColor: '#000000' },
+            isCompleting && { opacity: 0.6 }
           ]}
           onPress={handleNext}
+          disabled={isCompleting}
         >
           <Text style={styles.fullWidthButtonText}>
             {currentIndex === 0 ? 'Get Started' : 
