@@ -25,11 +25,11 @@ export default function AnalyzeScreen({ navigation, route }) {
 
   const checkPremiumAndAnalyze = async () => {
     try {
-      // Check if user is premium
+      // Check if user is premium locally first (fast check)
       const isPremium = await isUserPremium();
       
       if (!isPremium) {
-        // Show loader for a bit, then redirect to payment
+        // User is not premium locally, show loader for a bit, then redirect to payment
         startProgressAnimation();
         setTimeout(() => {
           navigation.navigate('Payment');
@@ -37,7 +37,8 @@ export default function AnalyzeScreen({ navigation, route }) {
         return;
       }
       
-      // User is premium, proceed with analysis
+      // User appears to be premium locally, proceed with analysis immediately
+      console.log('User appears premium locally, proceeding with analysis');
       startProgressAnimation();
       
       // Start the actual analysis
@@ -46,6 +47,10 @@ export default function AnalyzeScreen({ navigation, route }) {
       } else if (foodDescription) {
         performTextAnalysis();
       }
+      
+      // Background sync to validate subscription (non-blocking)
+      backgroundValidateSubscription();
+      
     } catch (error) {
       console.error('Error checking premium status:', error);
       // If error checking premium, show loader then payment wall
@@ -53,6 +58,37 @@ export default function AnalyzeScreen({ navigation, route }) {
       setTimeout(() => {
         navigation.navigate('Payment');
       }, 3000);
+    }
+  };
+
+  // Background validation of subscription (non-blocking)
+  const backgroundValidateSubscription = async () => {
+    try {
+      // Import RevenueCat functions dynamically to avoid blocking
+      const { initializeRevenueCat, getCustomerInfo, hasActiveSubscription } = await import('../lib/revenuecat');
+      const { setPremiumStatus } = await import('../lib/database');
+      
+      const initialized = await initializeRevenueCat();
+      if (!initialized) return;
+      
+      const customerInfo = await getCustomerInfo();
+      if (!customerInfo) return;
+      
+      const hasActive = hasActiveSubscription(customerInfo);
+      const localStatus = await isUserPremium();
+      
+      if (!hasActive && localStatus) {
+        // Subscription expired, update local status
+        console.log('Background validation: Subscription expired, updating local status');
+        await setPremiumStatus(false, 'expired', null);
+      } else if (hasActive && !localStatus) {
+        // Subscription active, restore premium
+        console.log('Background validation: Subscription active, restoring premium');
+        await setPremiumStatus(true, 'restored', null);
+      }
+    } catch (error) {
+      console.error('Background subscription validation error:', error);
+      // Don't throw error - this is background validation
     }
   };
 

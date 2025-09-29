@@ -36,6 +36,34 @@ export default function MainApp() {
     return () => clearTimeout(timeoutId);
   }, [refreshKey]);
 
+  // Set up periodic background sync for subscription validation
+  useEffect(() => {
+    let syncInterval = null;
+    
+    const startBackgroundSync = async () => {
+      try {
+        const localStatus = await getPremiumStatus();
+        if (localStatus.isPremium && localStatus.premiumType !== 'referral') {
+          // Run background sync every 5 minutes
+          syncInterval = setInterval(() => {
+            backgroundSyncWithRevenueCat();
+          }, 5 * 60 * 1000); // 5 minutes
+        }
+      } catch (error) {
+        console.error('Error starting background sync:', error);
+      }
+    };
+    
+    startBackgroundSync();
+    
+    // Return cleanup function
+    return () => {
+      if (syncInterval) {
+        clearInterval(syncInterval);
+      }
+    };
+  }, [showPaywall]); // Re-run when paywall state changes
+
   // Function to trigger a re-check of onboarding status
   const triggerOnboardingCheck = (navigation, forceOnboarding = false) => {
     console.log('Triggering onboarding check...', forceOnboarding ? '(forced to onboarding)' : '');
@@ -82,7 +110,63 @@ export default function MainApp() {
     });
   };
 
-  // Sync local premium status with RevenueCat
+  // Background sync with RevenueCat (non-blocking)
+  const backgroundSyncWithRevenueCat = async () => {
+    try {
+      console.log('MainApp: Starting background sync with RevenueCat...');
+      
+      // Get current local premium status
+      const localStatus = await getPremiumStatus();
+      
+      // Skip sync for referral users (they have permanent premium)
+      if (localStatus.premiumType === 'referral') {
+        console.log('MainApp: Referral user detected, skipping background sync');
+        return;
+      }
+      
+      // Initialize RevenueCat
+      const initialized = await initializeRevenueCat();
+      if (!initialized) {
+        console.log('MainApp: RevenueCat not initialized for background sync');
+        return;
+      }
+      
+      // Get current RevenueCat customer info
+      const customerInfo = await getCustomerInfo();
+      if (!customerInfo) {
+        console.log('MainApp: No customer info from RevenueCat in background sync - keeping local status unchanged');
+        return;
+      }
+      
+      // Check if subscription is active in RevenueCat
+      const hasActive = hasActiveSubscription(customerInfo);
+      console.log('Background sync - RevenueCat subscription active:', hasActive);
+      
+      // Only update local database if we have valid RevenueCat data
+      if (hasActive && !localStatus.isPremium) {
+        // Subscription is active in RevenueCat but local shows expired, restore premium
+        console.log('MainApp: Background sync - restoring premium status');
+        await setPremiumStatus(true, 'restored', null);
+      } else if (!hasActive && localStatus.isPremium) {
+        // Only expire subscription if we're certain it's expired in RevenueCat
+        // This should only happen if we successfully got customer info and it shows expired
+        console.log('MainApp: Background sync - subscription confirmed expired in RevenueCat, updating local status');
+        await setPremiumStatus(false, localStatus.premiumType, localStatus.premiumExpiresAt);
+        
+        // If user is currently in the app, we might want to show a notification
+        // or handle the expiration gracefully
+        console.log('MainApp: User subscription has expired, will show paywall on next app restart');
+      } else {
+        console.log('MainApp: Background sync - no changes needed, local and RevenueCat status match');
+      }
+      
+    } catch (error) {
+      console.error('MainApp: Error in background sync with RevenueCat:', error);
+      // Don't throw error in background sync - it shouldn't affect user experience
+    }
+  };
+
+  // Sync local premium status with RevenueCat (blocking - used during app startup)
   const syncWithRevenueCat = async () => {
     try {
       console.log('MainApp: Syncing with RevenueCat...');
@@ -97,42 +181,39 @@ export default function MainApp() {
         return localStatus.isPremium;
       }
       
-      // Only sync if user has a subscription-based premium status
-      if (localStatus.isPremium && (localStatus.premiumType === 'yearly' || localStatus.premiumType === 'weekly' || localStatus.premiumType === 'restored')) {
-        // Initialize RevenueCat
-        const initialized = await initializeRevenueCat();
-        if (!initialized) {
-          console.log('MainApp: RevenueCat not initialized, keeping local status');
-          return localStatus.isPremium;
-        }
-        
-        // Get current RevenueCat customer info
-        const customerInfo = await getCustomerInfo();
-        if (!customerInfo) {
-          console.log('MainApp: No customer info from RevenueCat, keeping local status');
-          return localStatus.isPremium;
-        }
-        
-        // Check if subscription is still active
-        const hasActive = hasActiveSubscription(customerInfo);
-        console.log('RevenueCat subscription active:', hasActive);
-        
-        if (!hasActive && localStatus.isPremium) {
-          // Subscription expired, update local database
-          console.log('MainApp: Subscription expired, updating local status to free');
-          await setPremiumStatus(false, localStatus.premiumType, localStatus.premiumExpiresAt);
-          return false;
-        } else if (hasActive && !localStatus.isPremium) {
-          // Subscription is active but local shows expired, restore premium
-          console.log('MainApp: Subscription active, restoring local premium status');
-          await setPremiumStatus(true, localStatus.premiumType || 'restored', null);
-          return true;
-        }
-        
-        return hasActive;
+      // Always try to initialize RevenueCat and check subscription status
+      // This ensures we catch subscriptions that were purchased but not synced locally
+      const initialized = await initializeRevenueCat();
+      if (!initialized) {
+        console.log('MainApp: RevenueCat not initialized, keeping local status');
+        return localStatus.isPremium;
       }
       
-      // For non-premium users or users without subscription type, return current status
+      // Get current RevenueCat customer info
+      const customerInfo = await getCustomerInfo();
+      if (!customerInfo) {
+        console.log('MainApp: No customer info from RevenueCat, keeping local status');
+        return localStatus.isPremium;
+      }
+      
+      // Check if subscription is active in RevenueCat
+      const hasActive = hasActiveSubscription(customerInfo);
+      console.log('RevenueCat subscription active:', hasActive);
+      
+      // Always sync the local database with RevenueCat status
+      if (hasActive && !localStatus.isPremium) {
+        // Subscription is active in RevenueCat but local shows expired, restore premium
+        console.log('MainApp: Subscription active in RevenueCat, restoring local premium status');
+        await setPremiumStatus(true, 'restored', null);
+        return true;
+      } else if (!hasActive && localStatus.isPremium) {
+        // Subscription expired in RevenueCat, update local database
+        console.log('MainApp: Subscription expired in RevenueCat, updating local status to free');
+        await setPremiumStatus(false, localStatus.premiumType, localStatus.premiumExpiresAt);
+        return false;
+      }
+      
+      // If both local and RevenueCat agree, return the local status (which matches RevenueCat)
       return localStatus.isPremium;
       
     } catch (error) {
@@ -166,20 +247,36 @@ export default function MainApp() {
         setShowPaywall(false);
         setIsLoading(false);
       } else {
-        // Onboarding is complete, sync with RevenueCat and check premium status
-        const isPremium = await syncWithRevenueCat();
-        console.log('User premium status after sync:', isPremium);
+        // Onboarding is complete, check local premium status first
+        const localStatus = await getPremiumStatus();
+        console.log('Local premium status:', localStatus);
         
-        if (!isPremium) {
-          console.log('MainApp: User not premium, showing paywall');
-          setShowOnboarding(false);
-          setShowPaywall(true);
-          setIsLoading(false);
-        } else {
-          console.log('MainApp: User is premium, going to main app');
+        if (localStatus.isPremium) {
+          // User appears to be premium locally, show home screen immediately
+          console.log('MainApp: User appears premium locally, showing home screen immediately');
           setShowOnboarding(false);
           setShowPaywall(false);
           setIsLoading(false);
+          
+          // Start background sync to validate subscription
+          backgroundSyncWithRevenueCat();
+        } else {
+          // User is not premium locally, sync with RevenueCat to check for new subscriptions
+          console.log('MainApp: User not premium locally, syncing with RevenueCat...');
+          const isPremium = await syncWithRevenueCat();
+          console.log('User premium status after sync:', isPremium);
+          
+          if (!isPremium) {
+            console.log('MainApp: User not premium, showing paywall');
+            setShowOnboarding(false);
+            setShowPaywall(true);
+            setIsLoading(false);
+          } else {
+            console.log('MainApp: User is premium after sync, going to main app');
+            setShowOnboarding(false);
+            setShowPaywall(false);
+            setIsLoading(false);
+          }
         }
       }
     } catch (error) {

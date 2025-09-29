@@ -9,7 +9,7 @@ import {
   restorePurchases,
   hasActiveSubscription,
   getSubscriptionStatus,
-  getCustomerInfo 
+  getCustomerInfo
 } from '../lib/revenuecat';
 import { setPremiumStatus } from '../lib/database';
 
@@ -42,24 +42,37 @@ export default function PaymentScreen({ navigation, onClose }) {
     try {
       setLoading(true);
       
-      // Initialize RevenueCat
-      const initialized = await initializeRevenueCat();
+      // Initialize RevenueCat with timeout
+      const initPromise = initializeRevenueCat();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Initialization timeout')), 5000)
+      );
+      
+      const initialized = await Promise.race([initPromise, timeoutPromise]);
       if (!initialized) {
         throw new Error('Failed to initialize payment system');
       }
 
-      // Get current customer info
-      const customer = await getCustomerInfo();
+      // Get current customer info with timeout
+      const customerPromise = getCustomerInfo();
+      const customerTimeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Customer info timeout')), 3000)
+      );
+      
+      const customer = await Promise.race([customerPromise, customerTimeoutPromise]);
       setCustomerInfo(customer);
 
       // Check if user already has active subscription
       if (customer && hasActiveSubscription(customer)) {
+        // Update local database to reflect active subscription
+        await setPremiumStatus(true, 'restored', null);
+        
         Alert.alert(
           'Already Subscribed',
-          'You already have an active subscription. Redirecting to the app...',
+          'You already have an active subscription. Welcome back to KetoMeter Premium!',
           [
             {
-              text: 'OK',
+              text: 'Continue',
               onPress: () => {
                 // Navigate to home if already subscribed
                 if (onClose) {
@@ -74,14 +87,19 @@ export default function PaymentScreen({ navigation, onClose }) {
         return;
       }
 
-      // Fetch available offerings
-      const availableOfferings = await getOfferings();
+      // Fetch available offerings with timeout
+      const offeringsPromise = getOfferings();
+      const offeringsTimeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Offerings timeout')), 3000)
+      );
+      
+      const availableOfferings = await Promise.race([offeringsPromise, offeringsTimeoutPromise]);
       setOfferings(availableOfferings);
 
     } catch (error) {
       console.error('Error initializing app:', error);
       // Don't show error alert, just proceed with fallback pricing
-      console.log('Using fallback pricing due to RevenueCat error');
+      console.log('Using fallback pricing due to RevenueCat error:', error.message);
       setOfferings(null); // This will trigger fallback pricing
     } finally {
       setLoading(false);
@@ -151,12 +169,14 @@ export default function PaymentScreen({ navigation, onClose }) {
               const premiumType = selectedPlan === 'yearly' ? 'yearly' : 'weekly';
               await setPremiumStatus(true, premiumType);
               
-              // Navigate to home after purchase
-              if (onClose) {
-                onClose();
-              } else {
-                navigation.navigate('MainTabs');
-              }
+              // Show success message but DON'T close paywall in demo mode
+              Alert.alert(
+                'Demo Purchase Complete!',
+                `Demo ${premiumType} subscription activated. Use the debug button in Settings to reset and test again.`,
+                [{ text: 'OK' }]
+              );
+              
+              // Don't close paywall - let user test again or manually close with X button
             }
           }
         ]
@@ -170,17 +190,25 @@ export default function PaymentScreen({ navigation, onClose }) {
       // If no offerings available, try to initialize RevenueCat and get offerings
       if (!offerings || !offerings.current) {
         console.log('No offerings available, attempting to reinitialize RevenueCat...');
+        
+        // Try to initialize RevenueCat
         const initialized = await initializeRevenueCat();
-        if (initialized) {
-          const freshOfferings = await getOfferings();
-          if (freshOfferings && freshOfferings.current) {
-            setOfferings(freshOfferings);
-            // Continue with the fresh offerings
+        if (!initialized) {
+          throw new Error('Unable to initialize payment system. Please check your internet connection and try again.');
+        }
+        
+        // Try to get fresh offerings
+        const freshOfferings = await getOfferings();
+        if (!freshOfferings || !freshOfferings.current) {
+          // If still no offerings, check if we're in a development environment
+          if (__DEV__) {
+            console.log('Development mode: No offerings available, using fallback');
+            // In development, we can proceed with fallback pricing
           } else {
             throw new Error('Unable to load subscription options. Please check your internet connection and try again.');
           }
         } else {
-          throw new Error('Unable to initialize payment system. Please try again.');
+          setOfferings(freshOfferings);
         }
       }
       
@@ -188,17 +216,25 @@ export default function PaymentScreen({ navigation, onClose }) {
       let packageToPurchase;
       const availablePackages = (offerings?.current?.availablePackages) || [];
       
+      console.log('Available packages:', availablePackages.map(pkg => ({
+        identifier: pkg.identifier,
+        packageType: pkg.packageType,
+        productId: pkg.product.identifier
+      })));
+      
       if (selectedPlan === 'yearly') {
-        // Look for yearly package
+        // Look for yearly package - use RevenueCat package ID
         packageToPurchase = availablePackages.find(pkg => 
+          pkg.identifier === '$rc_annual' ||
           pkg.packageType === 'ANNUAL' || 
           pkg.identifier.includes('yearly') ||
           pkg.identifier === 'ketometer_yearly' ||
           pkg.product.identifier === 'ketometer_yearly'
         );
       } else if (selectedPlan === 'trial') {
-        // Look for weekly package (trial)
+        // Look for weekly package (trial) - use RevenueCat package ID
         packageToPurchase = availablePackages.find(pkg => 
+          pkg.identifier === '$rc_weekly' ||
           pkg.packageType === 'WEEKLY' || 
           pkg.identifier.includes('weekly') ||
           pkg.identifier === 'ketometer_weekly' ||
@@ -207,7 +243,12 @@ export default function PaymentScreen({ navigation, onClose }) {
       }
 
       if (!packageToPurchase) {
-        throw new Error('Selected subscription plan not found');
+        // If no package found and we're in development, show a helpful error
+        if (__DEV__) {
+          throw new Error(`Selected subscription plan not found. Available packages: ${availablePackages.map(pkg => pkg.identifier).join(', ')}`);
+        } else {
+          throw new Error('Selected subscription plan not found. Please try again.');
+        }
       }
 
       console.log('Purchasing package:', packageToPurchase.identifier);
@@ -216,6 +257,8 @@ export default function PaymentScreen({ navigation, onClose }) {
       const result = await purchasePackage(packageToPurchase);
       
       if (result.success) {
+        console.log('Purchase successful, customer info:', result.customerInfo);
+        
         // Set premium status in database
         const premiumType = selectedPlan === 'yearly' ? 'yearly' : 'weekly';
         await setPremiumStatus(true, premiumType);
@@ -259,6 +302,7 @@ export default function PaymentScreen({ navigation, onClose }) {
   const handleRestore = async () => {
     try {
       setPurchasing(true);
+      console.log('Starting restore purchases...');
       
       // Check if we're in Expo Go environment (not TestFlight/Production)
       const isExpoGo = __DEV__ && (!offerings || !offerings.current);
@@ -285,13 +329,18 @@ export default function PaymentScreen({ navigation, onClose }) {
         }
       }
       
+      console.log('Calling restorePurchases...');
       const result = await restorePurchases();
+      console.log('Restore result:', result);
       
       if (result.success) {
+        console.log('Restore successful, checking subscription status...');
         const hasActive = hasActiveSubscription(result.customerInfo);
+        console.log('Has active subscription after restore:', hasActive);
         
         if (hasActive) {
           // Set premium status in database
+          console.log('Setting premium status to restored...');
           await setPremiumStatus(true, 'restored');
           
           Alert.alert(
@@ -300,18 +349,19 @@ export default function PaymentScreen({ navigation, onClose }) {
             [
               {
                 text: 'Continue',
-              onPress: () => {
-                // Navigate to home after restore
-                if (onClose) {
-                  onClose();
-                } else {
-                  navigation.navigate('MainTabs');
+                onPress: () => {
+                  // Navigate to home after restore
+                  if (onClose) {
+                    onClose();
+                  } else {
+                    navigation.navigate('MainTabs');
+                  }
                 }
-              }
               }
             ]
           );
         } else {
+          console.log('No active subscription found after restore');
           Alert.alert(
             'No Purchases Found',
             'No previous purchases were found to restore.',
@@ -319,6 +369,7 @@ export default function PaymentScreen({ navigation, onClose }) {
           );
         }
       } else {
+        console.log('Restore failed:', result.error);
         throw new Error(result.error || 'Failed to restore purchases');
       }
       
@@ -356,12 +407,14 @@ export default function PaymentScreen({ navigation, onClose }) {
 
     const packages = offerings.current.availablePackages;
     const yearlyPackage = packages.find(pkg => 
+      pkg.identifier === '$rc_annual' ||
       pkg.packageType === 'ANNUAL' || 
       pkg.identifier.includes('yearly') ||
       pkg.identifier === 'ketometer_yearly' ||
       pkg.product.identifier === 'ketometer_yearly'
     );
     const weeklyPackage = packages.find(pkg => 
+      pkg.identifier === '$rc_weekly' ||
       pkg.packageType === 'WEEKLY' || 
       pkg.identifier.includes('weekly') ||
       pkg.identifier === 'ketometer_weekly' ||

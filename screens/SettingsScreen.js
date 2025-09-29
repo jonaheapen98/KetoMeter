@@ -1,10 +1,69 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { isUserPremium, setPremiumStatus, resetOnboarding } from '../lib/database';
 
 export default function SettingsScreen({ navigation }) {
   const insets = useSafeAreaInsets();
+  const [isPremium, setIsPremium] = useState(false);
+
+  useEffect(() => {
+    checkPremiumStatus();
+  }, []);
+
+  const checkPremiumStatus = async () => {
+    try {
+      const premium = await isUserPremium();
+      setIsPremium(premium);
+    } catch (error) {
+      console.error('Error checking premium status:', error);
+      setIsPremium(false);
+    }
+  };
+
+  const handleStartOnboarding = () => {
+    Alert.alert(
+      'Reset App State',
+      'This will reset the app\'s onboarding and premium state. You\'ll need to restart the app to see the changes. Continue?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Reset premium status
+              await setPremiumStatus(false, null);
+              
+              // Reset onboarding
+              await resetOnboarding();
+              
+              Alert.alert(
+                'Reset Complete',
+                'App state has been reset. Please restart the app to see the onboarding flow.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      // Navigate back to main app - it will detect onboarding needs to be shown
+                      navigation.navigate('MainTabs');
+                    }
+                  }
+                ]
+              );
+            } catch (error) {
+              console.error('Error resetting app state:', error);
+              Alert.alert('Error', 'Failed to reset app state. Please try again.');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const handleLinkPress = async (url, title) => {
     try {
@@ -69,21 +128,42 @@ export default function SettingsScreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.settingItem}
-            onPress={() => navigation.navigate('ReferralCode')}
-            activeOpacity={0.7}
-          >
-            <View style={styles.settingItemContent}>
-              <View style={styles.settingItemLeft}>
-                <View style={styles.iconContainer}>
-                  <Feather name="gift" size={20} color="#4CAF50" />
+          {!isPremium && (
+            <TouchableOpacity 
+              style={styles.settingItem}
+              onPress={() => navigation.navigate('ReferralCode')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.settingItemContent}>
+                <View style={styles.settingItemLeft}>
+                  <View style={styles.iconContainer}>
+                    <Feather name="gift" size={20} color="#4CAF50" />
+                  </View>
+                  <Text style={styles.settingItemTitle}>Use Referral Code</Text>
                 </View>
-                <Text style={styles.settingItemTitle}>Use Referral Code</Text>
+                <Feather name="chevron-right" size={16} color="#8E8E93" />
               </View>
-              <Feather name="chevron-right" size={16} color="#8E8E93" />
-            </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+
+          {/* Debug Button - Only show in development */}
+          {/* {__DEV__ && (
+            <TouchableOpacity 
+              style={[styles.settingItem, styles.debugButton]}
+              onPress={handleStartOnboarding}
+              activeOpacity={0.7}
+            >
+              <View style={styles.settingItemContent}>
+                <View style={styles.settingItemLeft}>
+                  <View style={[styles.iconContainer, styles.debugIconContainer]}>
+                    <Feather name="refresh-cw" size={20} color="#FF6B6B" />
+                  </View>
+                  <Text style={[styles.settingItemTitle, styles.debugText]}>Start Onboarding</Text>
+                </View>
+                <Feather name="chevron-right" size={16} color="#8E8E93" />
+              </View>
+            </TouchableOpacity>
+          )} */}
         </View>
       </View>
     </View>
@@ -136,12 +216,10 @@ const styles = StyleSheet.create({
     borderColor: '#F0F0F0',
   },
   settingItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  settingItem: {
     paddingVertical: 20,
     paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
   settingItemContent: {
     flexDirection: 'row',
@@ -166,5 +244,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter_500Medium',
     color: '#000',
+  },
+  // Debug button styles
+  debugButton: {
+    backgroundColor: '#FFF5F5',
+    borderColor: '#FFE5E5',
+  },
+  debugIconContainer: {
+    backgroundColor: '#FFE5E5',
+  },
+  debugText: {
+    color: '#FF6B6B',
+    fontFamily: 'Inter_600SemiBold',
   },
 });

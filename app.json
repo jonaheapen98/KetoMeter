@@ -2,7 +2,7 @@
   "expo": {
     "name": "KetoMeter",
     "slug": "ketometer",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -17,7 +17,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.prtcl10.ketometer",
-      "buildNumber": "4",
+      "buildNumber": "10",
       "entitlements": {},
       "infoPlist": {
         "NSCameraUsageDescription": "KetoMeter uses your camera to capture photos of food items and menus for AI-powered keto analysis. This helps provide accurate nutritional insights and keto compatibility scores.",
@@ -32,7 +32,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.prtcl10.ketometer",
-      "versionCode": 4,
+      "versionCode": 10,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
